@@ -1,9 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { ZodType } from 'zod';
 
-type BackendResult =
-  | { ok: true; response: Response }
-  | { ok: false; errorResponse: NextResponse };
+type BackendResult = { ok: true; response: Response } | { ok: false; errorResponse: NextResponse };
 
 /**
  * Appelle le backend et centralise les erreurs techniques.

@@ -21,8 +21,7 @@ export const userUpdateBodySchema = z
   })
   .strict()
   .refine(
-    (value) =>
-      value.name !== undefined || value.picture !== undefined || value.role !== undefined,
+    (value) => value.name !== undefined || value.picture !== undefined || value.role !== undefined,
     { message: 'Au moins un champ est requis pour la mise à jour' },
   );
 

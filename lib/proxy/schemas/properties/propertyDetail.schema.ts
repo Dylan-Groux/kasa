@@ -8,9 +8,9 @@ import { propertySchema as propertyBaseSchema } from './propertyBase.schema';
  * @returns {PropertyDetailSchema} Détails d'une propriété
  */
 export const propertyDetailSchema = propertyBaseSchema.extend({
-    pictures: z.array(z.string()),
-    equipments: z.array(z.string()),
-    tags: z.array(z.string()),
+  pictures: z.array(z.string()),
+  equipments: z.array(z.string()),
+  tags: z.array(z.string()),
 });
 
 export const propertyDetailListSchema = z.array(propertyDetailSchema);
