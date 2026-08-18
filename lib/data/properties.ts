@@ -1,4 +1,5 @@
 import type { PropertyBaseSchema } from '@/lib/proxy/schemas/properties/propertyBase.schema';
+import type { PropertyDetailSchema } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 
 /**
  * Homepage listing mock, shaped exactly like the `/api/properties` response
@@ -10,13 +11,14 @@ export const homeProperties: PropertyBaseSchema[] = [
     id: '1',
     slug: 'appartement-cosy',
     title: 'Appartement cosy',
-    description: null,
+    description:
+      "Votre maison loin de chez vous. Que vous veniez de l'autre bout du monde, ou juste de quelques stations de RER, vous vous sentirez chez vous dans notre appartement.",
     cover: '/images/properties/property-1.jpg',
     location: 'Ile de France - Paris 17e',
     price_per_night: 100,
-    rating_avg: 4.8,
+    rating_avg: 3,
     ratings_count: 12,
-    host: { id: 1, name: 'Alexandre', picture: null },
+    host: { id: 1, name: 'Nathalie Jean', picture: '/images/hosts/avatar.jpg' },
   },
   {
     id: '2',
@@ -79,3 +81,48 @@ export const homeProperties: PropertyBaseSchema[] = [
     host: { id: 6, name: 'Sophie', picture: null },
   },
 ];
+
+const FALLBACK_EQUIPMENTS = ['Wifi', 'Cuisine équipée', 'Chauffage', 'Télévision'];
+const FALLBACK_TAGS = ['Paris'];
+
+/**
+ * `/logement/:slug` mock, shaped like `/api/properties/:id` (propertyDetailSchema).
+ * Only "appartement-cosy" mirrors the Figma detail frame exactly (pictures,
+ * equipments, tags); the other listings fall back to their cover photo and a
+ * generic amenity set so every homepage card still links to a working page.
+ */
+export const propertyDetails: PropertyDetailSchema[] = homeProperties.map((property) =>
+  property.slug === 'appartement-cosy'
+    ? {
+        ...property,
+        pictures: [
+          '/images/properties/property-1.jpg',
+          '/images/properties/thumb-2.jpg',
+          '/images/properties/thumb-3.jpg',
+          '/images/properties/thumb-4.jpg',
+          '/images/properties/thumb-5.jpg',
+        ],
+        equipments: [
+          'Cafetière',
+          'Bouilloire',
+          'Vaisselle',
+          'Micro-onde',
+          'Sèche-linge',
+          'Sèche Cheveux',
+          'Lit pour bébé',
+          'Télévision',
+        ],
+        tags: ['Batignolle', 'Montmartre'],
+      }
+    : {
+        ...property,
+        pictures: [property.cover ?? ''],
+        equipments: FALLBACK_EQUIPMENTS,
+        tags: FALLBACK_TAGS,
+      },
+);
+
+// Detail pages are looked up by slug (the public URL segment) rather than id.
+export function getPropertyDetailBySlug(slug: string): PropertyDetailSchema | undefined {
+  return propertyDetails.find((property) => property.slug === slug);
+}

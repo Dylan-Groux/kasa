@@ -1,0 +1,29 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.muted {
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+
+.brand {
+  background: var(--color-brand);
+  color: var(--color-white);
+  width: 100%;
+  padding: 8px 32px;
+}
