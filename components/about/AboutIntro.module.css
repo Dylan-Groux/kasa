@@ -1,0 +1,58 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.paragraph {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 342 / 458;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-muted);
+}
+
+.imageWrapper img {
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .intro {
+    gap: 40px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .paragraph {
+    font-size: 16px;
+    max-width: 742px;
+    margin: 0 auto;
+  }
+
+  .imageWrapper {
+    aspect-ratio: 1115 / 458;
+  }
+}
