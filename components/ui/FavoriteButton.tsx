@@ -6,10 +6,11 @@ import styles from './FavoriteButton.module.css';
 
 type FavoriteButtonProps = {
   propertyTitle: string;
+  initialFavorite?: boolean;
 };
 
-export function FavoriteButton({ propertyTitle }: FavoriteButtonProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export function FavoriteButton({ propertyTitle, initialFavorite = false }: FavoriteButtonProps) {
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
 
   // Stops the click from bubbling to the card link underneath it.
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
