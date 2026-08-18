@@ -6,9 +6,10 @@ import styles from './PropertyCard.module.css';
 
 type PropertyCardProps = {
   property: PropertyBaseSchema;
+  initialFavorite?: boolean;
 };
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, initialFavorite = false }: PropertyCardProps) {
   return (
     <li className={styles.card}>
       <Link href={`/logement/${property.slug}`} className={styles.link}>
@@ -36,7 +37,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </div>
       </Link>
       <div className={styles.favorite}>
-        <FavoriteButton propertyTitle={property.title} />
+        <FavoriteButton propertyTitle={property.title} initialFavorite={initialFavorite} />
       </div>
     </li>
   );
