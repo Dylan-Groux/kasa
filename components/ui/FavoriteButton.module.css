@@ -1,0 +1,31 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.button:hover {
+  color: var(--color-brand);
+}
+
+.button:active {
+  transform: scale(0.92);
+}
+
+.button[aria-pressed='true'] {
+  color: var(--color-brand);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
