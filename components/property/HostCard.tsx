@@ -29,8 +29,12 @@ export function HostCard({ host, rating }: HostCardProps) {
           {rating}
         </span>
       </div>
-      <Button variant="brand">Contacter l&apos;hôte</Button>
-      <Button variant="brand">Envoyer un message</Button>
+      <Button variant="brand" className={styles.actionButton}>
+        Contacter l&apos;hôte
+      </Button>
+      <Button variant="brand" className={styles.actionButton}>
+        Envoyer un message
+      </Button>
     </div>
   );
 }

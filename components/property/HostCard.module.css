@@ -66,6 +66,10 @@
   height: 17px;
 }
 
+.actionButton {
+  width: 100%;
+}
+
 @media (min-width: 640px) {
   .avatar {
     width: 82px;
