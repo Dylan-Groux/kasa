@@ -8,7 +8,7 @@ type GalleryProps = {
 
 export function Gallery({ properties }: GalleryProps) {
   return (
-    <section aria-label="Logements disponibles">
+    <section id="logements" aria-label="Logements disponibles">
       <ul className={styles.grid}>
         {properties.map((property) => (
           <PropertyCard key={property.id} property={property} />
