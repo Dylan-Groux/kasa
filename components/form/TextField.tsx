@@ -4,13 +4,21 @@ type TextFieldProps = {
   label: string;
   name: string;
   placeholder?: string;
+  type?: 'text' | 'email' | 'password';
+  required?: boolean;
 };
 
-export function TextField({ label, name, placeholder }: TextFieldProps) {
+export function TextField({ label, name, placeholder, type = 'text', required }: TextFieldProps) {
   return (
     <label className={styles.field}>
       <span className={styles.label}>{label}</span>
-      <input type="text" name={name} placeholder={placeholder} className={styles.input} />
+      <input
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        required={required}
+        className={styles.input}
+      />
     </label>
   );
 }
