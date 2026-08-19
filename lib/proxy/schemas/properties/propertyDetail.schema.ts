@@ -13,6 +13,4 @@ export const propertyDetailSchema = propertyBaseSchema.extend({
   tags: z.array(z.string()),
 });
 
-export const propertyDetailListSchema = z.array(propertyDetailSchema);
-
 export type PropertyDetailSchema = z.infer<typeof propertyDetailSchema>;
