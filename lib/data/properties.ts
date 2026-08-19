@@ -2,7 +2,10 @@ import {
   propertyListSchema,
   type PropertyBaseSchema,
 } from '@/lib/proxy/schemas/properties/propertyBase.schema';
-import type { PropertyDetailSchema } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
+import {
+  propertyDetailSchema,
+  type PropertyDetailSchema,
+} from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 
 /**
  * Fetches the homepage listing straight from the backend. Runs in a Server
@@ -118,47 +121,53 @@ export const homeProperties: PropertyBaseSchema[] = [
   },
 ];
 
-const FALLBACK_EQUIPMENTS = ['Wifi', 'Cuisine équipée', 'Chauffage', 'Télévision'];
-const FALLBACK_TAGS = ['Paris'];
-
 /**
- * `/logement/:slug` mock, shaped like `/api/properties/:id` (propertyDetailSchema).
- * Only "appartement-cosy" mirrors the Figma detail frame exactly (pictures,
- * equipments, tags); the other listings fall back to their cover photo and a
- * generic amenity set so every homepage card still links to a working page.
+ * Fetches one property's full detail for `/logement/:slug`. The backend has
+ * no slug-based lookup, so this resolves the id from the listing first, then
+ * fetches `/api/properties/:id` for the pictures/equipments/tags the listing
+ * doesn't carry. Any failure (network, bad shape, unknown slug) degrades to
+ * `null` so the page can render its own not-found state.
  */
-export const propertyDetails: PropertyDetailSchema[] = homeProperties.map((property) =>
-  property.slug === 'appartement-cosy'
-    ? {
-        ...property,
-        pictures: [
-          '/images/properties/property-1.jpg',
-          '/images/properties/thumb-2.jpg',
-          '/images/properties/thumb-3.jpg',
-          '/images/properties/thumb-4.jpg',
-          '/images/properties/thumb-5.jpg',
-        ],
-        equipments: [
-          'Cafetière',
-          'Bouilloire',
-          'Vaisselle',
-          'Micro-onde',
-          'Sèche-linge',
-          'Sèche Cheveux',
-          'Lit pour bébé',
-          'Télévision',
-        ],
-        tags: ['Batignolle', 'Montmartre'],
-      }
-    : {
-        ...property,
-        pictures: [property.cover ?? ''],
-        equipments: FALLBACK_EQUIPMENTS,
-        tags: FALLBACK_TAGS,
-      },
-);
+export async function getPropertyDetailBySlug(slug: string): Promise<PropertyDetailSchema | null> {
+  const backendUrl = process.env.BACKEND_API_URL;
 
-// Detail pages are looked up by slug (the public URL segment) rather than id.
-export function getPropertyDetailBySlug(slug: string): PropertyDetailSchema | undefined {
-  return propertyDetails.find((property) => property.slug === slug);
+  if (!backendUrl) {
+    console.error('BACKEND_API_URL is not set');
+    return null;
+  }
+
+  const properties = await getHomeProperties();
+  const match = properties.find((property) => property.slug === slug);
+
+  if (!match) {
+    return null;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${backendUrl}/api/properties/${match.id}`, {
+      next: { revalidate: 60 },
+    });
+  } catch (error) {
+    console.error(`GET /api/properties/${match.id} unreachable`, error);
+    return null;
+  }
+
+  if (!response.ok) {
+    console.error(`GET /api/properties/${match.id} returned status ${response.status}`);
+    return null;
+  }
+
+  const rawBody: unknown = await response.json();
+  const parsed = propertyDetailSchema.safeParse(rawBody);
+
+  if (!parsed.success) {
+    console.error(
+      `GET /api/properties/${match.id} response failed schema validation`,
+      parsed.error,
+    );
+    return null;
+  }
+
+  return parsed.data;
 }
