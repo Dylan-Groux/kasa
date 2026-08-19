@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/lib/auth/AuthContext';
+import { FavoritesProvider } from '@/lib/favorites/FavoritesContext';
 import './globals.css';
 
 const inter = Inter({
@@ -21,9 +22,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html lang="fr" className={inter.variable}>
       <body>
         <AuthProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <FavoritesProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>

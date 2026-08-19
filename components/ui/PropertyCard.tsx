@@ -8,10 +8,9 @@ const FALLBACK_COVER = '/images/properties/placeholder.svg';
 
 type PropertyCardProps = {
   property: PropertyBaseSchema;
-  initialFavorite?: boolean;
 };
 
-export function PropertyCard({ property, initialFavorite = false }: PropertyCardProps) {
+export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <li className={styles.card}>
       <Link href={`/logement/${property.slug}`} className={styles.link}>
@@ -37,7 +36,7 @@ export function PropertyCard({ property, initialFavorite = false }: PropertyCard
         </div>
       </Link>
       <div className={styles.favorite}>
-        <FavoriteButton propertyTitle={property.title} initialFavorite={initialFavorite} />
+        <FavoriteButton property={property} />
       </div>
     </li>
   );
