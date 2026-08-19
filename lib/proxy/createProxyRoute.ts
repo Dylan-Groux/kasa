@@ -3,6 +3,27 @@ import type { ZodType } from 'zod';
 
 type BackendResult = { ok: true; response: Response } | { ok: false; errorResponse: NextResponse };
 
+type BackendPath<TParams extends Record<string, string>> = string | ((params: TParams) => string);
+
+type RouteContext<TParams extends Record<string, string>> = { params?: Promise<TParams> };
+
+/**
+ * Résout un backendPath statique ou dérivé des params de route dynamique
+ * (ex: `(params) => \`/api/properties/${params.id}/favorite\``).
+ * Utilisation: toutes les factories de routes proxy.
+ */
+async function resolveBackendPath<TParams extends Record<string, string>>(
+  backendPath: BackendPath<TParams>,
+  context?: RouteContext<TParams>,
+): Promise<string> {
+  if (typeof backendPath === 'string') {
+    return backendPath;
+  }
+
+  const params = context?.params ? await context.params : ({} as TParams);
+  return backendPath(params);
+}
+
 /**
  * Appelle le backend et centralise les erreurs techniques.
  * Utilisation: toutes les méthodes HTTP (GET/POST/PATCH/DELETE).
@@ -86,8 +107,8 @@ function forwardAuthHeader(request: NextRequest, extra?: HeadersInit): Headers {
   return headers;
 }
 
-interface ProxyGetRouteConfig<TResponse> {
-  backendPath: string;
+interface ProxyGetRouteConfig<TResponse, TParams extends Record<string, string>> {
+  backendPath: BackendPath<TParams>;
   responseSchema: ZodType<TResponse>;
 }
 
@@ -96,16 +117,20 @@ interface ProxyGetRouteConfig<TResponse> {
  * Utilisation: lecture de données (liste/détail) depuis un endpoint backend.
  * @template TResponse Type de réponse attendu.
  * @param config Configuration du proxy GET.
- * @param config.backendPath Chemin backend cible.
+ * @param config.backendPath Chemin backend cible, ou fonction dérivée des params de route dynamique.
  * @param config.responseSchema Schéma Zod de validation de la réponse.
  * @returns Un handler GET qui appelle le backend puis valide la réponse.
  */
-export function createProxyGetRoute<TResponse>({
-  backendPath,
-  responseSchema,
-}: ProxyGetRouteConfig<TResponse>) {
-  return async function GET(): Promise<NextResponse> {
-    const result = await callBackend(backendPath);
+export function createProxyGetRoute<
+  TResponse,
+  TParams extends Record<string, string> = Record<string, string>,
+>({ backendPath, responseSchema }: ProxyGetRouteConfig<TResponse, TParams>) {
+  return async function GET(
+    _request?: NextRequest,
+    context?: RouteContext<TParams>,
+  ): Promise<NextResponse> {
+    const path = await resolveBackendPath(backendPath, context);
+    const result = await callBackend(path);
 
     if (!result.ok) {
       return result.errorResponse;
@@ -189,5 +214,42 @@ export function createProxyDeleteRoute({ backendPath }: ProxyDeleteRouteConfig) 
     }
 
     return new NextResponse(null, { status: result.response.status });
+  };
+}
+
+interface ProxyActionRouteConfig<TResponse, TParams extends Record<string, string>> {
+  method: 'POST' | 'DELETE';
+  backendPath: BackendPath<TParams>;
+  responseSchema: ZodType<TResponse>;
+}
+
+/**
+ * Factory pour actions POST/DELETE authentifiées sans body entrant, dont la
+ * réponse backend est un JSON à valider (ex: favoris `{ok:true}`) plutôt
+ * qu'un 204 vide — cas que ni createProxyMutationRoute (body requis) ni
+ * createProxyDeleteRoute (pas de validation de réponse) ne couvrent.
+ * @param config.method Méthode autorisée: POST ou DELETE.
+ * @param config.backendPath Chemin backend cible, ou fonction dérivée des params de route dynamique.
+ * @param config.responseSchema Schéma Zod de validation de la réponse.
+ * @returns Un handler qui forwarde l'auth (pas de body) puis valide la réponse backend.
+ */
+export function createProxyActionRoute<
+  TResponse,
+  TParams extends Record<string, string> = Record<string, string>,
+>({ method, backendPath, responseSchema }: ProxyActionRouteConfig<TResponse, TParams>) {
+  return async function handler(
+    request: NextRequest,
+    context?: RouteContext<TParams>,
+  ): Promise<NextResponse> {
+    const path = await resolveBackendPath(backendPath, context);
+    const headers = forwardAuthHeader(request);
+    const result = await callBackend(path, { method, headers });
+
+    if (!result.ok) {
+      return result.errorResponse;
+    }
+
+    const rawBody: unknown = await result.response.json();
+    return parseBackendJson(rawBody, responseSchema, result.response.status);
   };
 }

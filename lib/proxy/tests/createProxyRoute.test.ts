@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import {
+  createProxyActionRoute,
   createProxyDeleteRoute,
   createProxyGetRoute,
   createProxyMutationRoute,
@@ -80,6 +81,25 @@ describe('createProxyRoute', () => {
       const response = await handler();
 
       expect(response.status).toBe(404);
+    });
+
+    it('résout un backendPath dynamique à partir des params de route', async () => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify([{ id: '1', name: 'Villa' }]), { status: 200 }),
+        );
+      vi.stubGlobal('fetch', fetchMock);
+
+      const handler = createProxyGetRoute({
+        backendPath: (params: { id: string }) => `/api/items/${params.id}/related`,
+        responseSchema: z.array(itemSchema),
+      });
+
+      await handler(undefined, { params: Promise.resolve({ id: '42' }) });
+
+      const [url] = fetchMock.mock.calls[0] as [string];
+      expect(url).toBe('http://backend.test/api/items/42/related');
     });
   });
 
@@ -185,6 +205,78 @@ describe('createProxyRoute', () => {
       const handler = createProxyDeleteRoute({ backendPath: '/api/items/1' });
 
       const request = new NextRequest('http://localhost/api/items/1', { method: 'DELETE' });
+
+      const response = await handler(request);
+
+      expect(response.status).toBe(502);
+    });
+  });
+
+  describe('createProxyActionRoute', () => {
+    const actionResponseSchema = z.object({ ok: z.boolean() });
+
+    it('forward le header auth sans body, résout le backendPath dynamique, et valide la réponse', async () => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const handler = createProxyActionRoute({
+        method: 'POST',
+        backendPath: (params: { id: string }) => `/api/items/${params.id}/favorite`,
+        responseSchema: actionResponseSchema,
+      });
+
+      const request = new NextRequest('http://localhost/api/items/1/favorite', {
+        method: 'POST',
+        headers: { authorization: 'Bearer token123' },
+      });
+
+      const response = await handler(request, { params: Promise.resolve({ id: '1' }) });
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ ok: true });
+
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('http://backend.test/api/items/1/favorite');
+      expect(init.method).toBe('POST');
+      expect(init.body).toBeUndefined();
+      expect(new Headers(init.headers).get('authorization')).toBe('Bearer token123');
+    });
+
+    it('renvoie 502 si la réponse backend ne respecte pas le schéma', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(new Response(JSON.stringify({}), { status: 200 })),
+      );
+
+      const handler = createProxyActionRoute({
+        method: 'DELETE',
+        backendPath: '/api/items/1/favorite',
+        responseSchema: actionResponseSchema,
+      });
+
+      const request = new NextRequest('http://localhost/api/items/1/favorite', {
+        method: 'DELETE',
+      });
+
+      const response = await handler(request);
+
+      expect(response.status).toBe(502);
+    });
+
+    it('renvoie 502 si le backend est injoignable', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+
+      const handler = createProxyActionRoute({
+        method: 'DELETE',
+        backendPath: '/api/items/1/favorite',
+        responseSchema: actionResponseSchema,
+      });
+
+      const request = new NextRequest('http://localhost/api/items/1/favorite', {
+        method: 'DELETE',
+      });
 
       const response = await handler(request);
 
