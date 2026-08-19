@@ -17,3 +17,9 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+.empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+  text-align: center;
+}

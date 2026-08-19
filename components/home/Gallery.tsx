@@ -7,6 +7,14 @@ type GalleryProps = {
 };
 
 export function Gallery({ properties }: GalleryProps) {
+  if (properties.length === 0) {
+    return (
+      <section aria-label="Logements disponibles">
+        <p className={styles.empty}>Logements indisponibles pour le moment.</p>
+      </section>
+    );
+  }
+
   return (
     <section aria-label="Logements disponibles">
       <ul className={styles.grid}>
