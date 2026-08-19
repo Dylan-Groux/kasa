@@ -1,6 +1,5 @@
 import type { PropertyBaseSchema } from '@/lib/proxy/schemas/properties/propertyBase.schema';
-import { PropertyCard } from '@/components/ui/PropertyCard';
-import styles from './Gallery.module.css';
+import { PropertyCardGrid } from '@/components/ui/PropertyCardGrid';
 
 type GalleryProps = {
   properties: PropertyBaseSchema[];
@@ -16,12 +15,8 @@ export function Gallery({ properties }: GalleryProps) {
   }
 
   return (
-    <section aria-label="Logements disponibles">
-      <ul className={styles.grid}>
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-      </ul>
+    <section id="logements" aria-label="Logements disponibles">
+      <PropertyCardGrid properties={properties} />
     </section>
   );
 }

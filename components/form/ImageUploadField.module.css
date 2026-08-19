@@ -1,0 +1,48 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.dropzone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 1px dashed var(--color-surface-muted);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--color-brand);
+}
+
+/* Native file input is visually hidden; the label above acts as the control. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-brand);
+  color: var(--color-white);
+}
+
+.icon {
+  width: 19px;
+  height: 19px;
+}
