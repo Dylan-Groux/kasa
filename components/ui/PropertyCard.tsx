@@ -4,6 +4,8 @@ import type { PropertyBaseSchema } from '@/lib/proxy/schemas/properties/property
 import { FavoriteButton } from './FavoriteButton';
 import styles from './PropertyCard.module.css';
 
+const FALLBACK_COVER = '/images/properties/placeholder.svg';
+
 type PropertyCardProps = {
   property: PropertyBaseSchema;
   initialFavorite?: boolean;
@@ -14,15 +16,13 @@ export function PropertyCard({ property, initialFavorite = false }: PropertyCard
     <li className={styles.card}>
       <Link href={`/logement/${property.slug}`} className={styles.link}>
         <div className={styles.imageWrapper}>
-          {property.cover ? (
-            <Image
-              src={property.cover}
-              alt={property.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 355px"
-              className={styles.image}
-            />
-          ) : null}
+          <Image
+            src={property.cover ?? FALLBACK_COVER}
+            alt={property.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 355px"
+            className={styles.image}
+          />
         </div>
         <div className={styles.details}>
           <div className={styles.text}>
