@@ -1,5 +1,6 @@
 import type { PropertyBaseSchema } from '@/lib/proxy/schemas/properties/propertyBase.schema';
 import { PropertyCardGrid } from '@/components/ui/PropertyCardGrid';
+import styles from './Gallery.module.css';
 
 type GalleryProps = {
   properties: PropertyBaseSchema[];
