@@ -3,7 +3,10 @@ import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { LoginForm } from '@/components/auth/LoginForm';
 import styles from '../auth.module.css';
 
-export const metadata: Metadata = { title: 'Connexion - Kasa' };
+export const metadata: Metadata = {
+  title: 'Connexion',
+  robots: { index: false, follow: false },
+};
 
 export default function LoginPage() {
   return (

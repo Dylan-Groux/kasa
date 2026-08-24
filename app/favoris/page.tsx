@@ -4,7 +4,10 @@ import { PropertyCardGrid } from '@/components/ui/PropertyCardGrid';
 import { homeProperties } from '@/lib/data/properties';
 import styles from './page.module.css';
 
-export const metadata: Metadata = { title: 'Vos favoris - Kasa' };
+export const metadata: Metadata = {
+  title: 'Vos favoris',
+  robots: { index: false, follow: false },
+};
 
 // No backend yet: mimics an already-favorited subset of the listing mock.
 const favoriteProperties = homeProperties.slice(0, 3);
