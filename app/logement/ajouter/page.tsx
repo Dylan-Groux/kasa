@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Ajouter une propriété - Kasa' };
 export default function AjouterPropertePage() {
   return (
     <RequireAuth>
-      <main className={styles.main}>
+      <main id="main-content" className={styles.main}>
         <AddPropertyGate />
       </main>
     </RequireAuth>

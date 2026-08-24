@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'À propos - Kasa' };
 
 export default function AProposPage() {
   return (
-    <main className={styles.main}>
+    <main id="main-content" className={styles.main}>
       <AboutContent />
     </main>
   );

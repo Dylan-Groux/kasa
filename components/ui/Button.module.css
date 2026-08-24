@@ -26,3 +26,8 @@
   color: var(--color-white);
   padding: 8px 32px;
 }
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

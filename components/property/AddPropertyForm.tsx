@@ -256,8 +256,8 @@ export function AddPropertyForm() {
       </div>
 
       <div className={styles.row}>
-        <div className={styles.card}>
-          <span className={styles.sectionLabel}>Équipements</span>
+        <fieldset className={styles.card}>
+          <legend className={styles.sectionLabel}>Équipements</legend>
           <ul className={styles.equipmentList}>
             {EQUIPMENTS.map((equipment) => (
               <li key={equipment}>
@@ -265,10 +265,10 @@ export function AddPropertyForm() {
               </li>
             ))}
           </ul>
-        </div>
+        </fieldset>
 
-        <div className={styles.card}>
-          <span className={styles.sectionLabel}>Catégories</span>
+        <fieldset className={styles.card}>
+          <legend className={styles.sectionLabel}>Catégories</legend>
           <ul className={styles.categoryList}>
             {CATEGORIES.map((category) => (
               <li key={category}>
@@ -295,11 +295,17 @@ export function AddPropertyForm() {
             placeholder="Nouveau tag"
             value={customTagValue}
             onChange={(event) => setCustomTagValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleAddCustomTag();
+              }
+            }}
           />
           <button type="button" className={styles.addTag} onClick={handleAddCustomTag}>
             +Ajouter un tag
           </button>
-        </div>
+        </fieldset>
       </div>
     </form>
   );

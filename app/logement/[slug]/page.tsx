@@ -19,7 +19,7 @@ export default async function LogementPage(props: PageProps<'/logement/[slug]'>)
   }
 
   return (
-    <main className={styles.main}>
+    <main id="main-content" className={styles.main}>
       <PropertyDetail property={property} />
     </main>
   );

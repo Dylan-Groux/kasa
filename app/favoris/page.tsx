@@ -11,7 +11,7 @@ const favoriteProperties = homeProperties.slice(0, 3);
 
 export default function FavorisPage() {
   return (
-    <main className={styles.main}>
+    <main id="main-content" className={styles.main}>
       <FavoritesIntro />
       <PropertyCardGrid properties={favoriteProperties} initialFavorite />
     </main>

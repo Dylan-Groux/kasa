@@ -57,3 +57,19 @@ button {
   color: inherit;
   cursor: pointer;
 }
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--color-brand);
+  color: var(--color-white);
+  border-radius: var(--radius-sm);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 8px;
+}

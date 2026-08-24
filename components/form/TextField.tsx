@@ -8,6 +8,7 @@ type TextFieldProps = {
   required?: boolean;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 };
 
 export function TextField({
@@ -18,6 +19,7 @@ export function TextField({
   required,
   value,
   onChange,
+  onKeyDown,
 }: TextFieldProps) {
   return (
     <label className={styles.field}>
@@ -29,6 +31,7 @@ export function TextField({
         required={required}
         value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         className={styles.input}
       />
     </label>

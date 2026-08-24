@@ -8,7 +8,7 @@ export default async function Home() {
   const properties = await getHomeProperties();
 
   return (
-    <main className={styles.main}>
+    <main id="main-content" className={styles.main}>
       <Hero />
       <Gallery properties={properties} />
       <HowItWorks />

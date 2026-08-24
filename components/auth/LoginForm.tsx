@@ -73,7 +73,12 @@ export function LoginForm() {
           {isSubmitting ? 'Connexion...' : 'Se connecter'}
         </Button>
         <div className={styles.links}>
-          <button type="button" className={styles.link}>
+          <button
+            type="button"
+            className={styles.link}
+            disabled
+            aria-label="Mot de passe oublié — fonctionnalité à venir"
+          >
             Mot de passe oublié
           </button>
           <p className={styles.linkText}>
