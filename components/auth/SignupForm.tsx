@@ -35,6 +35,7 @@ export function SignupForm() {
           name: `${firstName} ${lastName}`.trim(),
           email: formData.get('email'),
           password: formData.get('password'),
+          role: formData.get('isHost') ? 'owner' : 'client',
         }),
       });
 
@@ -67,6 +68,7 @@ export function SignupForm() {
         <TextField label="Adresse email" name="email" type="email" required />
         <TextField label="Mot de passe" name="password" type="password" required />
         <CheckboxField label="J'accepte les conditions générales d'utilisation" name="terms" />
+        <CheckboxField label="Je veux louer mon logement (compte propriétaire)" name="isHost" />
       </div>
 
       {error ? (

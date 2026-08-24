@@ -38,6 +38,34 @@
   border-radius: var(--radius-md);
 }
 
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: #fdecea;
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.customTag {
+  composes: pill from '../form/CategoryTagField.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-brand);
+  color: var(--color-white);
+}
+
+.removeTag {
+  border: none;
+  background: none;
+  padding: 0;
+  line-height: 1;
+  font-size: 14px;
+  color: inherit;
+  cursor: pointer;
+}
+
 .sectionLabel {
   font-size: 14px;
   font-weight: 500;
