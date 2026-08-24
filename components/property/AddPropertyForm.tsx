@@ -1,10 +1,21 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon';
 import { Button } from '@/components/ui/Button';
 import { CategoryTagField } from '@/components/form/CategoryTagField';
 import { CheckboxField } from '@/components/form/CheckboxField';
 import { ImageUploadField } from '@/components/form/ImageUploadField';
+import { PicturesUploadField } from '@/components/form/PicturesUploadField';
 import { TextField } from '@/components/form/TextField';
 import { TextareaField } from '@/components/form/TextareaField';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { propertyCreateResponseSchema } from '@/lib/proxy/schemas/properties/propertyCreate.schema';
+import {
+  uploadImageResponseSchema,
+  type UploadImagePurpose,
+} from '@/lib/proxy/schemas/uploads/uploadImage.schema';
 import styles from './AddPropertyForm.module.css';
 
 const EQUIPMENTS = [
@@ -34,6 +45,10 @@ const EQUIPMENTS = [
   'Vue Parc',
 ];
 
+// Marks an error message as safe to show the user as-is (as opposed to a
+// raw network/parsing exception, which stays behind the generic fallback).
+class UserFacingError extends Error {}
+
 const CATEGORIES = [
   'Parc',
   'Night Life',
@@ -47,18 +62,163 @@ const CATEGORIES = [
 ];
 
 export function AddPropertyForm() {
+  const router = useRouter();
+  const { session } = useAuth();
+  const [customTagValue, setCustomTagValue] = useState('');
+  const [customTags, setCustomTags] = useState<string[]>([]);
+  const [pictureFiles, setPictureFiles] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleAddCustomTag() {
+    const trimmed = customTagValue.trim();
+    if (trimmed && !customTags.includes(trimmed)) {
+      setCustomTags((current) => [...current, trimmed]);
+    }
+    setCustomTagValue('');
+  }
+
+  function handleRemoveCustomTag(tag: string) {
+    setCustomTags((current) => current.filter((current_) => current_ !== tag));
+  }
+
+  // Uploads a single file to the proxy and returns the URL the backend
+  // expects in the property payload (cover/host.picture are URLs, not files).
+  // Throws a message-carrying error the catch block below can show as-is.
+  async function uploadImage(
+    file: File,
+    purpose: UploadImagePurpose,
+    fieldLabel: string,
+  ): Promise<string> {
+    const uploadForm = new FormData();
+    uploadForm.append('file', file);
+    uploadForm.append('purpose', purpose);
+
+    let response: Response;
+    try {
+      response = await fetch('/api/uploads/image', {
+        method: 'POST',
+        headers: session ? { Authorization: `Bearer ${session.token}` } : undefined,
+        body: uploadForm,
+      });
+    } catch {
+      throw new UserFacingError(`${fieldLabel} : envoi impossible, vérifiez votre connexion.`);
+    }
+
+    const rawBody: unknown = await response.json();
+
+    if (!response.ok) {
+      const message =
+        typeof rawBody === 'object' && rawBody && 'error' in rawBody
+          ? String((rawBody as { error: unknown }).error)
+          : `Erreur ${response.status}`;
+      throw new UserFacingError(`${fieldLabel} : ${message}`);
+    }
+
+    return uploadImageResponseSchema.parse(rawBody).url;
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const formEl = event.currentTarget;
+      const formData = new FormData(formEl);
+      // Read files straight off the inputs rather than via formData.get(name):
+      // more direct for file inputs specifically, and each browser keeps the
+      // actual file content this way (FormData(form) can lose it for files).
+      const coverFile = (formEl.elements.namedItem('cover') as HTMLInputElement | null)?.files?.[0];
+      const hostPictureFile = (formEl.elements.namedItem('hostPicture') as HTMLInputElement | null)
+        ?.files?.[0];
+
+      const [coverUrl, hostPictureUrl, pictureUrls] = await Promise.all([
+        coverFile && coverFile.size > 0
+          ? uploadImage(coverFile, 'property-cover', 'Image de couverture')
+          : undefined,
+        hostPictureFile && hostPictureFile.size > 0
+          ? uploadImage(hostPictureFile, 'user-picture', 'Photo de profil')
+          : undefined,
+        Promise.all(
+          pictureFiles.map((file) => uploadImage(file, 'property-picture', 'Photos du logement')),
+        ),
+      ]);
+
+      const title = String(formData.get('title') ?? '').trim();
+      const description = String(formData.get('description') ?? '').trim();
+      const postalCode = String(formData.get('postalCode') ?? '').trim();
+      const location = String(formData.get('location') ?? '').trim();
+      const hostName = String(formData.get('hostName') ?? '').trim();
+      const priceRaw = String(formData.get('price_per_night') ?? '').trim();
+      const equipments = formData.getAll('equipments').map(String);
+      const tags = [...formData.getAll('tags').map(String), ...customTags];
+
+      const payload = {
+        title,
+        description: description || undefined,
+        cover: coverUrl,
+        location: [location, postalCode].filter(Boolean).join(' - ') || undefined,
+        price_per_night: priceRaw ? Number(priceRaw) : undefined,
+        host: { name: hostName, picture: hostPictureUrl },
+        pictures: pictureUrls.length ? pictureUrls : undefined,
+        equipments: equipments.length ? equipments : undefined,
+        tags: tags.length ? tags : undefined,
+      };
+
+      const response = await fetch('/api/properties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const rawBody: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          response.status === 403
+            ? 'Seuls les comptes propriétaire peuvent ajouter un logement.'
+            : typeof rawBody === 'object' && rawBody && 'error' in rawBody
+              ? String((rawBody as { error: unknown }).error)
+              : 'Impossible de créer le logement.';
+        setError(message);
+        return;
+      }
+
+      propertyCreateResponseSchema.parse(rawBody);
+      router.push('/');
+    } catch (err) {
+      setError(
+        err instanceof UserFacingError
+          ? err.message
+          : 'Impossible de créer le logement. Réessayez plus tard.',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <form className={styles.form}>
+    <form className={styles.form} onSubmit={handleSubmit}>
       <Button href="/" variant="muted" icon={<ChevronLeftIcon />}>
         Retour aux annonces
       </Button>
 
       <div className={styles.heading}>
         <h1 className={styles.title}>Ajouter une propriété</h1>
-        <Button variant="brand" className={styles.submit}>
-          Ajouter
+        <Button variant="brand" type="submit" className={styles.submit} disabled={isSubmitting}>
+          {isSubmitting ? 'Ajout en cours...' : 'Ajouter'}
         </Button>
       </div>
+
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className={styles.row}>
         <div className={styles.card}>
@@ -66,6 +226,7 @@ export function AddPropertyForm() {
             label="Titre de la propriété"
             name="title"
             placeholder="Ex : Appartement cosy au coeur de paris"
+            required
           />
           <TextareaField
             label="Description"
@@ -74,11 +235,22 @@ export function AddPropertyForm() {
           />
           <TextField label="Code postal" name="postalCode" />
           <TextField label="Localisation" name="location" />
+          <TextField
+            label="Prix par nuit (€)"
+            name="price_per_night"
+            type="number"
+            placeholder="80"
+          />
         </div>
 
         <div className={styles.card}>
           <ImageUploadField label="Image de couverture" name="cover" />
-          <TextField label="Nom de l'hôte" name="hostName" />
+          <PicturesUploadField
+            label="Photos du logement"
+            files={pictureFiles}
+            onChange={setPictureFiles}
+          />
+          <TextField label="Nom de l'hôte" name="hostName" required />
           <ImageUploadField label="Photo de profil" name="hostPicture" />
         </div>
       </div>
@@ -103,13 +275,28 @@ export function AddPropertyForm() {
                 <CategoryTagField label={category} name="tags" />
               </li>
             ))}
+            {customTags.map((tag) => (
+              <li key={tag} className={styles.customTag}>
+                {tag}
+                <button
+                  type="button"
+                  className={styles.removeTag}
+                  onClick={() => handleRemoveCustomTag(tag)}
+                  aria-label={`Retirer ${tag}`}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
           </ul>
           <TextField
             label="Ajouter une catégorie personnalisée"
             name="customTag"
             placeholder="Nouveau tag"
+            value={customTagValue}
+            onChange={(event) => setCustomTagValue(event.target.value)}
           />
-          <button type="button" className={styles.addTag}>
+          <button type="button" className={styles.addTag} onClick={handleAddCustomTag}>
             +Ajouter un tag
           </button>
         </div>

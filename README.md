@@ -1,36 +1,180 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kasa
 
-## Getting Started
+Clone du projet Kasa (location de logements type Airbnb), réécrit en Next.js
+(App Router) sur un backend externe existant (API REST + JWT).
 
-First, run the development server:
+> Repo frontend uniquement. Le backend (Express + JWT + base de données) est
+> un projet séparé, attendu sur `BACKEND_API_URL` (voir [Configuration](#configuration)).
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + React + TypeScript
+- **Zod** pour valider toutes les entrées/sorties des routes proxy
+- **CSS Modules** (pas de framework CSS)
+- **Vitest** + **@testing-library/react** pour les tests
+
+## Configuration
 
 ```bash
+npm ci
+cp .env.example .env.local   # puis renseigner BACKEND_API_URL
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Variable          | Rôle                                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `BACKEND_API_URL` | Origine du backend REST (ex: `http://localhost:3000`). Lue **uniquement côté serveur** (routes `app/api/*` et Server Components) — jamais exposée au client. |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Commandes de validation (voir `AGENTS.md`) :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint    # ESLint
+npm test        # Vitest
+npm run build   # build de production
+```
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+Le frontend ne parle **jamais directement** au backend depuis le navigateur.
+Deux façons d'accéder aux données, selon où le code s'exécute :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```mermaid
+flowchart LR
+    subgraph Navigateur
+        RC["React Client Components<br/>(formulaires, favoris...)"]
+    end
+    subgraph "Serveur Next.js"
+        SC["Server Components<br/>(page d'accueil, détail logement)"]
+        Proxy["Routes /api/* du frontend<br/>(app/api/**/route.ts)"]
+    end
+    Backend[("Backend externe<br/>BACKEND_API_URL")]
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    RC -- "fetch('/api/...')<br/>+ Authorization: Bearer" --> Proxy
+    Proxy -- "fetch(BACKEND_API_URL + path)" --> Backend
+    SC -- "fetch direct<br/>(pas de token nécessaire)" --> Backend
+```
 
-## Deploy on Vercel
+- **Server Components** (`app/page.tsx`, `app/logement/[slug]/page.tsx` via
+  `lib/data/properties.ts`) appellent le backend directement — pas besoin de
+  passer par une route `/api/*` puisqu'ils tournent déjà côté serveur et que
+  ces lectures ne nécessitent pas de token.
+- **Client Components** (formulaires d'auth, ajout de logement) ne peuvent
+  pas lire `BACKEND_API_URL` (variable serveur uniquement) : ils passent par
+  les routes `app/api/**/route.ts`, qui **proxifient** vers le backend en
+  forwardant le header `Authorization` et en validant le body/la réponse
+  avec Zod (voir `lib/proxy/createProxyRoute.ts`, 4 factories :
+  `createProxyGetRoute`, `createProxyMutationRoute` (POST/PATCH JSON),
+  `createProxyMultipartRoute` (upload de fichier), `createProxyDeleteRoute`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tous les schémas Zod (requête + réponse) vivent dans
+`lib/proxy/schemas/**`, organisés par ressource (`auth`, `properties`,
+`favorites`, `uploads`, `users`, `ratings`). `lib/proxy/schemas/API_ROUTES.md`
+documente le contrat complet du backend (routes, auth requise, rôles,
+formats d'erreur) — **source de vérité** à consulter avant de brancher une
+nouvelle route.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Authentification
+
+`lib/auth/AuthContext.tsx` garde la session (`{token, user}`) **en mémoire
+uniquement** — pas de `localStorage`/cookie, donc un rechargement de page
+déconnecte l'utilisateur. Choix assumé pour éviter qu'un token soit
+exfiltrable via XSS/localStorage ; à remplacer par un mécanisme persistant
+(cookie httpOnly côté backend, par ex.) si l'UX doit survivre au F5.
+
+`components/auth/RequireAuth.tsx` protège une page côté client : redirige
+vers `/login` si `isAuthenticated` est faux. Il ne vérifie **que**
+l'authentification, pas le rôle — voir [Rôles](#rôles-utilisateur).
+
+### Rôles utilisateur
+
+Le backend connaît 3 rôles : `client`, `owner`, `admin`. Seuls `owner` et
+`admin` peuvent créer/modifier/supprimer un logement ou uploader une image
+(`requireRole(['owner','admin'])` côté backend → `403` sinon). À
+l'inscription (`SignupForm`), une case "Je veux louer mon logement" envoie
+`role: 'owner'`, sinon `role: 'client'` par défaut.
+
+⚠️ Le rôle est encodé **dans le JWT** au moment du login/register — le
+changer en base (`PATCH /api/users/:id`) ne change rien pour une session
+déjà ouverte tant que l'utilisateur ne se reconnecte pas (vérifié
+empiriquement). Il n'y a donc pas de "promotion" transparente possible sans
+réémettre un token.
+
+## Flux types
+
+### 1. Visiteur découvre un logement
+
+```mermaid
+sequenceDiagram
+    participant U as Visiteur
+    participant Home as / (Server Component)
+    participant Detail as /logement/[slug]
+    participant API as Backend
+
+    U->>Home: ouvre la page d'accueil
+    Home->>API: GET /api/properties
+    API-->>Home: [PropertyBase...]
+    Home-->>U: galerie de logements
+
+    U->>Detail: clique un logement
+    Detail->>API: GET /api/properties (résout le slug → id)
+    Detail->>API: GET /api/properties/:id
+    API-->>Detail: PropertyDetail
+    Detail-->>U: détail, équipements, hôte
+```
+
+Aucune authentification requise pour ce parcours.
+
+### 2. Inscription / connexion
+
+```mermaid
+sequenceDiagram
+    participant U as Utilisateur
+    participant Form as SignupForm / LoginForm
+    participant Proxy as /api/auth/register|login
+    participant API as Backend
+    participant Ctx as AuthContext (mémoire)
+
+    U->>Form: remplit le formulaire
+    Form->>Proxy: POST {name?, email, password, role?}
+    Proxy->>API: POST /auth/register|login
+    API-->>Proxy: 200/201 {token, user}
+    Proxy-->>Form: {token, user}
+    Form->>Ctx: login(session)
+    Form-->>U: redirection vers /
+```
+
+### 3. Ajout d'un logement (propriétaire)
+
+```mermaid
+sequenceDiagram
+    participant U as Propriétaire connecté
+    participant Form as AddPropertyForm
+    participant Up as /api/uploads/image
+    participant Prop as /api/properties
+    participant API as Backend
+
+    U->>Form: remplit titre, hôte, équipements, tags, images
+    U->>Form: clique "Ajouter"
+    opt image de couverture / photo hôte fournie
+        Form->>Up: POST multipart {file, purpose}<br/>Authorization: Bearer token
+        Up->>API: POST /api/uploads/image
+        API-->>Up: {url}
+        Up-->>Form: {url}
+    end
+    Form->>Prop: POST {title, host, cover?, equipments[], tags[]...}<br/>Authorization: Bearer token
+    Prop->>API: POST /api/properties
+    alt rôle owner|admin
+        API-->>Prop: 201 PropertyDetail
+        Prop-->>Form: 201
+        Form-->>U: redirection vers /
+    else rôle client
+        API-->>Prop: 403
+        Prop-->>Form: 403
+        Form-->>U: "Seuls les comptes propriétaire peuvent ajouter un logement."
+    end
+```
+
+`RequireAuth` (dans `app/logement/ajouter/page.tsx`) bloque déjà les
+visiteurs non connectés en amont (redirection `/login`), mais ne filtre pas
+par rôle : un compte `client` arrive jusqu'au formulaire et n'est bloqué
+qu'à la soumission (cf. finding ci-dessus sur les rôles).

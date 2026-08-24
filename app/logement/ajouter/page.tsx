@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AddPropertyForm } from '@/components/property/AddPropertyForm';
+import { AddPropertyGate } from '@/components/property/AddPropertyGate';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import styles from './page.module.css';
 
@@ -9,7 +9,7 @@ export default function AjouterPropertePage() {
   return (
     <RequireAuth>
       <main className={styles.main}>
-        <AddPropertyForm />
+        <AddPropertyGate />
       </main>
     </RequireAuth>
   );
