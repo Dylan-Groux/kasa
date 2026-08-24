@@ -3,7 +3,10 @@ import { AddPropertyGate } from '@/components/property/AddPropertyGate';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import styles from './page.module.css';
 
-export const metadata: Metadata = { title: 'Ajouter une propriété - Kasa' };
+export const metadata: Metadata = {
+  title: 'Ajouter une propriété',
+  robots: { index: false, follow: false },
+};
 
 export default function AjouterPropertePage() {
   return (

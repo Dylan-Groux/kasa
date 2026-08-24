@@ -3,7 +3,10 @@ import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SignupForm } from '@/components/auth/SignupForm';
 import styles from '../auth.module.css';
 
-export const metadata: Metadata = { title: 'Inscription - Kasa' };
+export const metadata: Metadata = {
+  title: 'Inscription',
+  robots: { index: false, follow: false },
+};
 
 export default function SignInPage() {
   return (
