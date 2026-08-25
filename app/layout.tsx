@@ -3,8 +3,7 @@ import { Inter } from 'next/font/google';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/lib/auth/AuthContext';
-import { jsonLdScriptProps } from '@/lib/seo/jsonLd';
-import { SITE_NAME, SITE_URL } from '@/lib/seo/site';
+import { FavoritesProvider } from '@/lib/favorites/FavoritesContext';
 import './globals.css';
 
 const inter = Inter({
@@ -60,9 +59,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         </a>
         <script type="application/ld+json" {...jsonLdScriptProps(organizationJsonLd)} />
         <AuthProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <FavoritesProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>
