@@ -1,15 +1,18 @@
 import type { Metadata } from 'next';
-import { AddPropertyForm } from '@/components/property/AddPropertyForm';
+import { AddPropertyGate } from '@/components/property/AddPropertyGate';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import styles from './page.module.css';
 
-export const metadata: Metadata = { title: 'Ajouter une propriété - Kasa' };
+export const metadata: Metadata = {
+  title: 'Ajouter une propriété',
+  robots: { index: false, follow: false },
+};
 
 export default function AjouterPropertePage() {
   return (
     <RequireAuth>
-      <main className={styles.main}>
-        <AddPropertyForm />
+      <main id="main-content" className={styles.main}>
+        <AddPropertyGate />
       </main>
     </RequireAuth>
   );

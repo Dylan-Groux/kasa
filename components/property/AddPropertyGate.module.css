@@ -1,0 +1,15 @@
+.wrapper {
+  composes: card from './AddPropertyForm.module.css';
+  align-items: flex-start;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.error {
+  composes: error from './AddPropertyForm.module.css';
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text);
+}
