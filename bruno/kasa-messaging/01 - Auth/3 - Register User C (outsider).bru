@@ -1,0 +1,34 @@
+meta {
+  name: 3 - Register User C (outsider)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "bruno-c@kasa-test.local",
+    "password": "Password123!",
+    "name": "Bruno Test C (outsider)"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201 || res.getStatus() === 200) {
+    const data = res.getBody();
+    bru.setEnvVar("tokenC", data.token);
+  }
+}
+
+tests {
+  test("returns a token and a user", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+    expect(data).to.have.property("token");
+  });
+}

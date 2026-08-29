@@ -1,6 +1,12 @@
+'use client';
+
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { StarIcon } from '@/components/icons/StarIcon';
 import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { createConversationResponseSchema } from '@/lib/proxy/schemas/conversations/createConversation.schema';
 import type { PropertyDetailSchema } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 import styles from './HostCard.module.css';
 
@@ -10,6 +16,43 @@ type HostCardProps = {
 };
 
 export function HostCard({ host, rating }: HostCardProps) {
+  const router = useRouter();
+  const { session, isAuthenticated } = useAuth();
+  const [isStartingConversation, setIsStartingConversation] = useState(false);
+
+  // Find-or-create a conversation with the host, then jump straight to its thread —
+  // this is the messaging feature's only entry point outside /messagerie itself.
+  async function handleMessageHost() {
+    if (!isAuthenticated || !session) {
+      router.push('/login');
+      return;
+    }
+
+    setIsStartingConversation(true);
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+        body: JSON.stringify({ participant_id: host.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to start conversation with status ${response.status}`);
+      }
+
+      const rawBody: unknown = await response.json();
+      const parsed = createConversationResponseSchema.safeParse(rawBody);
+      if (!parsed.success) {
+        throw new Error('Unexpected response shape');
+      }
+
+      router.push(`/messagerie/${parsed.data.id}`);
+    } catch (error) {
+      console.error('Failed to start conversation with host', error);
+      setIsStartingConversation(false);
+    }
+  }
+
   return (
     <div className={styles.card}>
       <h2 className={styles.title}>Votre hôte</h2>
@@ -32,16 +75,16 @@ export function HostCard({ host, rating }: HostCardProps) {
       <Button
         variant="brand"
         className={styles.actionButton}
-        disabled
-        aria-label="Contacter l'hôte — fonctionnalité à venir"
+        disabled={isStartingConversation}
+        onClick={handleMessageHost}
       >
         Contacter l&apos;hôte
       </Button>
       <Button
         variant="brand"
         className={styles.actionButton}
-        disabled
-        aria-label="Envoyer un message — fonctionnalité à venir"
+        disabled={isStartingConversation}
+        onClick={handleMessageHost}
       >
         Envoyer un message
       </Button>

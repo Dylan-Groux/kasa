@@ -1,0 +1,26 @@
+meta {
+  name: 5 - List My Conversations
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/conversations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+tests {
+  test("lists the conversation with a preview of the last message", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.equal(200);
+    const conv = data.find((c) => c.id === bru.getEnvVar("conversationId"));
+    expect(conv).to.exist;
+    expect(conv.other_participant.name).to.exist;
+    expect(conv.last_message).to.have.property("content");
+  });
+}

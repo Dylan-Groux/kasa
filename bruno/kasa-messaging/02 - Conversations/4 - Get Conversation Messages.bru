@@ -1,0 +1,33 @@
+meta {
+  name: 4 - Get Conversation Messages
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+tests {
+  test("returns messages in chronological order, sender/receiver enriched", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.equal(200);
+    expect(data).to.have.property("conversation_id", bru.getEnvVar("conversationId"));
+    expect(data.messages.length).to.be.greaterThan(0);
+
+    const timestamps = data.messages.map((m) => new Date(m.created_at).getTime());
+    const sorted = [...timestamps].sort((a, b) => a - b);
+    expect(timestamps).to.deep.equal(sorted);
+
+    for (const message of data.messages) {
+      expect(message.sender).to.have.property("name");
+      expect(message.receiver).to.have.property("name");
+    }
+  });
+}

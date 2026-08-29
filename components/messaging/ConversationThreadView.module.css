@@ -1,0 +1,14 @@
+.view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.status {
+  margin: auto;
+  padding: 24px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+}

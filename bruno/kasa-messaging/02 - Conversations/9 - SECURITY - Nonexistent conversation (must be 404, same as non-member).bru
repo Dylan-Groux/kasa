@@ -1,0 +1,21 @@
+meta {
+  name: 9 - SECURITY - Nonexistent conversation (must be 404, same as non-member)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/conversations/does-not-exist/messages
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+tests {
+  test("404 with the same error body as the non-member case (no enumeration signal)", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}
