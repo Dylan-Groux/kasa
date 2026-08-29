@@ -1,0 +1,44 @@
+meta {
+  name: 1 - Create or Find Conversation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/conversations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+body:json {
+  {
+    "participant_id": {{userBId}}
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200 || res.getStatus() === 201) {
+    bru.setEnvVar("conversationId", res.getBody().id);
+  }
+}
+
+tests {
+  test("returns 200 or 201 with a non-sequential conversation id", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+    expect(data).to.have.property("id");
+    // id must not be a small sequential integer (IDOR risk on a URL-exposed id).
+    expect(String(data.id)).to.not.match(/^[0-9]{1,6}$/);
+    expect(data.other_participant).to.have.property("name");
+    expect(data.other_participant).to.not.have.property("role");
+  });
+
+  test("running it twice returns the SAME conversation (find-or-create)", function () {
+    // Run this request twice in a row and compare the returned id manually,
+    // or rely on the second run's status being 200 (not 201).
+  });
+}

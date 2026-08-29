@@ -1,0 +1,27 @@
+meta {
+  name: 8 - SECURITY - Non-member POST (must be 404)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenC}}
+}
+
+body:json {
+  {
+    "content": "Je m'invite dans la conversation"
+  }
+}
+
+tests {
+  test("404: cannot send into a conversation you don't belong to", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

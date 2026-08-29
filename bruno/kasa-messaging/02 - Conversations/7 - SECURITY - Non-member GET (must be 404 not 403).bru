@@ -1,0 +1,21 @@
+meta {
+  name: 7 - SECURITY - Non-member GET (must be 404 not 403)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenC}}
+}
+
+tests {
+  test("404, never 403 (anti-enumeration: same response as a nonexistent conversation)", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

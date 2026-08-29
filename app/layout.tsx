@@ -4,6 +4,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { FavoritesProvider } from '@/lib/favorites/FavoritesContext';
+import { SITE_NAME, SITE_URL } from '@/lib/seo/site';
+import { jsonLdScriptProps } from '@/lib/seo/jsonLd';
 import './globals.css';
 
 const inter = Inter({

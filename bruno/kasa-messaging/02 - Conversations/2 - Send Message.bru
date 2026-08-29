@@ -1,0 +1,32 @@
+meta {
+  name: 2 - Send Message
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+body:json {
+  {
+    "content": "Bonjour depuis Bruno !"
+  }
+}
+
+tests {
+  test("201, sender/receiver correctly resolved from the token + conversation", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.equal(201);
+    expect(data.content).to.equal("Bonjour depuis Bruno !");
+    expect(String(data.sender.id)).to.equal(String(bru.getEnvVar("userAId")));
+    expect(String(data.receiver.id)).to.equal(String(bru.getEnvVar("userBId")));
+    expect(data).to.have.property("created_at");
+  });
+}

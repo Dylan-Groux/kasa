@@ -1,0 +1,36 @@
+meta {
+  name: 2 - Register User B (host)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "bruno-b@kasa-test.local",
+    "password": "Password123!",
+    "name": "Bruno Test B (host)"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201 || res.getStatus() === 200) {
+    const data = res.getBody();
+    bru.setEnvVar("tokenB", data.token);
+    bru.setEnvVar("userBId", data.user.id);
+  }
+}
+
+tests {
+  test("returns a token and a user", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+    expect(data).to.have.property("token");
+    expect(data.user).to.have.property("id");
+  });
+}

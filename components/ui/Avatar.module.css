@@ -1,0 +1,21 @@
+.avatar {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-muted);
+}
+
+.avatar img {
+  object-fit: cover;
+}
+
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
