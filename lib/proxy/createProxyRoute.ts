@@ -126,11 +126,11 @@ export function createProxyGetRoute<
   TParams extends Record<string, string> = Record<string, string>,
 >({ backendPath, responseSchema }: ProxyGetRouteConfig<TResponse, TParams>) {
   return async function GET(
-    _request?: NextRequest,
+    request?: NextRequest,
     context?: RouteContext<TParams>,
   ): Promise<NextResponse> {
     const path = await resolveBackendPath(backendPath, context);
-    const result = await callBackend(path);
+    const result = await callBackend(path, request ? { headers: forwardAuthHeader(request) } : undefined);
 
     if (!result.ok) {
       return result.errorResponse;
