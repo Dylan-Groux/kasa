@@ -29,10 +29,20 @@ export function HostCard({ host, rating }: HostCardProps) {
           {rating}
         </span>
       </div>
-      <Button variant="brand" className={styles.actionButton}>
+      <Button
+        variant="brand"
+        className={styles.actionButton}
+        disabled
+        aria-label="Contacter l'hôte — fonctionnalité à venir"
+      >
         Contacter l&apos;hôte
       </Button>
-      <Button variant="brand" className={styles.actionButton}>
+      <Button
+        variant="brand"
+        className={styles.actionButton}
+        disabled
+        aria-label="Envoyer un message — fonctionnalité à venir"
+      >
         Envoyer un message
       </Button>
     </div>

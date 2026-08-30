@@ -1,0 +1,84 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.previewWrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-surface-muted);
+}
+
+.previewImage {
+  object-fit: cover;
+}
+
+.remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-text);
+  color: var(--color-white);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.addTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px dashed var(--color-surface-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-brand);
+  cursor: pointer;
+}
+
+.icon {
+  width: 19px;
+  height: 19px;
+}
+
+/* Native file input is visually hidden; the label above acts as the control. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

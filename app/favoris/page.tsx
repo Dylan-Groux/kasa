@@ -4,7 +4,10 @@ import { FavoritesGallery } from '@/components/favorites/FavoritesGallery';
 import { FavoritesIntro } from '@/components/favorites/FavoritesIntro';
 import styles from './page.module.css';
 
-export const metadata: Metadata = { title: 'Vos favoris - Kasa' };
+export const metadata: Metadata = {
+  title: 'Vos favoris',
+  robots: { index: false, follow: false },
+};
 
 export default function FavorisPage() {
   return (

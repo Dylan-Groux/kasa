@@ -62,3 +62,12 @@
 .link:hover {
   text-decoration: underline;
 }
+
+.link:disabled {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.link:disabled:hover {
+  text-decoration: none;
+}

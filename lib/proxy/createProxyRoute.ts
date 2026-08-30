@@ -53,12 +53,23 @@ async function callBackend(path: string, init?: RequestInit): Promise<BackendRes
   }
 
   if (!upstreamResponse.ok) {
+    // Le backend répond en {error: "<message>"} (format documenté dans
+    // API_ROUTES.md) : on relaie ce message tel quel plutôt que de le
+    // remplacer par un texte générique qui masquerait des erreurs utiles
+    // (validation, conflit, rôle insuffisant...) aux formulaires appelants.
+    let message = 'Backend returned an error';
+    try {
+      const rawBody: unknown = await upstreamResponse.json();
+      if (typeof rawBody === 'object' && rawBody !== null && 'error' in rawBody) {
+        message = String((rawBody as { error: unknown }).error);
+      }
+    } catch {
+      // Corps vide ou non-JSON : on garde le message générique.
+    }
+
     return {
       ok: false,
-      errorResponse: NextResponse.json(
-        { error: 'Backend returned an error' },
-        { status: upstreamResponse.status },
-      ),
+      errorResponse: NextResponse.json({ error: message }, { status: upstreamResponse.status }),
     };
   }
 
@@ -78,6 +89,7 @@ function parseBackendJson<TResponse>(
   rawBody: unknown,
   responseSchema: ZodType<TResponse>,
   status: number,
+  transform?: (data: TResponse) => TResponse,
 ): NextResponse {
   const parsed = responseSchema.safeParse(rawBody);
 
@@ -86,7 +98,23 @@ function parseBackendJson<TResponse>(
     return NextResponse.json({ error: 'Unexpected backend response shape' }, { status: 502 });
   }
 
-  return NextResponse.json(parsed.data, { status });
+  return NextResponse.json(transform ? transform(parsed.data) : parsed.data, { status });
+}
+
+/**
+ * Résout une URL potentiellement relative au backend (ex: le `url` renvoyé
+ * par POST /api/uploads/image) en URL absolue, seule forme utilisable
+ * depuis le navigateur une fois stockée sur une ressource (cover, avatar...).
+ * @param url URL brute renvoyée par le backend.
+ * @returns L'URL telle quelle si déjà absolue, sinon préfixée par BACKEND_API_URL.
+ */
+export function resolveBackendUrl(url: string): string {
+  if (/^https?:\/\//.test(url)) {
+    return url;
+  }
+
+  const backendUrl = process.env.BACKEND_API_URL ?? '';
+  return `${backendUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 /**
@@ -144,7 +172,8 @@ export function createProxyGetRoute<
 
 interface ProxyMutationRouteConfig<TBody, TResponse> {
   method: 'POST' | 'PATCH';
-  backendPath: string;
+  // Chemin fixe, ou dérivé des segments dynamiques de la route (ex: [id]).
+  backendPath: string | ((params: Record<string, string>) => string);
   bodySchema: ZodType<TBody>;
   responseSchema: ZodType<TResponse>;
 }
@@ -156,7 +185,8 @@ interface ProxyMutationRouteConfig<TBody, TResponse> {
  * @template TResponse Type de réponse attendu en sortie.
  * @param config Configuration du proxy mutation.
  * @param config.method Méthode autorisée: POST ou PATCH.
- * @param config.backendPath Chemin backend cible.
+ * @param config.backendPath Chemin backend cible, ou fonction (params) => chemin
+ * pour une route dynamique (ex: `(params) => \`/api/users/${params.id}\``).
  * @param config.bodySchema Schéma Zod de validation du body entrant.
  * @param config.responseSchema Schéma Zod de validation de la réponse backend.
  * @returns Un handler qui valide l'entrée (400 si invalide), forwarde l'auth,
@@ -168,7 +198,10 @@ export function createProxyMutationRoute<TBody, TResponse>({
   bodySchema,
   responseSchema,
 }: ProxyMutationRouteConfig<TBody, TResponse>) {
-  return async function handler(request: NextRequest): Promise<NextResponse> {
+  return async function handler(
+    request: NextRequest,
+    context?: { params: Promise<Record<string, string>> },
+  ): Promise<NextResponse> {
     const rawBody: unknown = await request.json();
     const parsedBody = bodySchema.safeParse(rawBody);
 
@@ -177,8 +210,11 @@ export function createProxyMutationRoute<TBody, TResponse>({
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
+    const resolvedPath =
+      typeof backendPath === 'function' ? backendPath((await context?.params) ?? {}) : backendPath;
+
     const headers = forwardAuthHeader(request, { 'Content-Type': 'application/json' });
-    const result = await callBackend(backendPath, {
+    const result = await callBackend(resolvedPath, {
       method,
       headers,
       body: JSON.stringify(parsedBody.data),
@@ -190,6 +226,41 @@ export function createProxyMutationRoute<TBody, TResponse>({
 
     const rawResponseBody: unknown = await result.response.json();
     return parseBackendJson(rawResponseBody, responseSchema, result.response.status);
+  };
+}
+
+interface ProxyMultipartRouteConfig<TResponse> {
+  backendPath: string;
+  responseSchema: ZodType<TResponse>;
+  transformResponse?: (data: TResponse) => TResponse;
+}
+
+/**
+ * Factory pour route POST multipart/form-data (upload de fichier).
+ * Utilisation: transmet le FormData entrant tel quel au backend — pas de
+ * validation Zod en entrée (le fichier binaire est vérifié côté backend).
+ * @template TResponse Type de réponse attendu.
+ * @param config Configuration du proxy multipart.
+ * @param config.backendPath Chemin backend cible.
+ * @param config.responseSchema Schéma Zod de validation de la réponse.
+ * @returns Un handler POST qui forwarde le FormData et l'auth, puis valide la réponse.
+ */
+export function createProxyMultipartRoute<TResponse>({
+  backendPath,
+  responseSchema,
+  transformResponse,
+}: ProxyMultipartRouteConfig<TResponse>) {
+  return async function POST(request: NextRequest): Promise<NextResponse> {
+    const formData = await request.formData();
+    const headers = forwardAuthHeader(request);
+    const result = await callBackend(backendPath, { method: 'POST', headers, body: formData });
+
+    if (!result.ok) {
+      return result.errorResponse;
+    }
+
+    const rawBody: unknown = await result.response.json();
+    return parseBackendJson(rawBody, responseSchema, result.response.status, transformResponse);
   };
 }
 

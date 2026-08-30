@@ -1,9 +1,15 @@
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/Button';
 import styles from './not-found.module.css';
 
+export const metadata: Metadata = {
+  title: 'Page introuvable',
+  robots: { index: false, follow: false },
+};
+
 export default function NotFound() {
   return (
-    <main className={styles.main}>
+    <main id="main-content" className={styles.main}>
       <div className={styles.content}>
         <p className={styles.code}>404</p>
         <p className={styles.message}>

@@ -1,5 +1,6 @@
 .empty {
+  margin: 0;
+  padding: 32px 0;
+  color: var(--color-text-secondary);
   text-align: center;
-  padding: 2rem;
-  color: var(--color-text-muted, #6b7280);
 }
