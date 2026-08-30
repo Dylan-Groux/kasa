@@ -165,7 +165,10 @@ export function createProxyGetRoute<
     context?: RouteContext<TParams>,
   ): Promise<NextResponse> {
     const path = await resolveBackendPath(backendPath, context);
-    const result = await callBackend(path, request ? { headers: forwardAuthHeader(request) } : undefined);
+    const result = await callBackend(
+      path,
+      request ? { headers: forwardAuthHeader(request) } : undefined,
+    );
 
     if (!result.ok) {
       return result.errorResponse;
