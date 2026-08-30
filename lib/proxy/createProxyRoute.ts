@@ -159,7 +159,7 @@ interface ProxyGetRouteConfig<TResponse, TParams extends Record<string, string>>
 export function createProxyGetRoute<
   TResponse,
   TParams extends Record<string, string> = Record<string, string>,
->({ backendPath, responseSchema, requireAuth }: ProxyGetRouteConfig<TResponse, TParams>) {
+>({ backendPath, responseSchema }: ProxyGetRouteConfig<TResponse, TParams>) {
   return async function GET(
     request?: NextRequest,
     context?: RouteContext<TParams>,
