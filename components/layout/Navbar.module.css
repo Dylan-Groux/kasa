@@ -2,19 +2,28 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 16px 24px;
-  background: var(--color-bg);
 }
 
+/*
+ * Padding lives on .bar (not .wrapper) so its opaque background — needed to
+ * stay visible above .mobileMenu below — covers the exact same box as
+ * .wrapper, with no uncovered padding strip the fixed overlay could show
+ * through.
+ */
 .bar {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  padding: 16px 24px;
+  background: var(--color-bg);
 }
 
 .linksDesktop,
-.actionsDesktop {
+.actionsDesktop,
+.logoDesktop {
   display: none;
 }
 
@@ -63,38 +72,78 @@
   flex-shrink: 0;
 }
 
+/*
+ * Full-screen mobile menu overlay. Always mounted (see Navbar.tsx) — there's
+ * no CSS transform/visibility toggle on this container at all anymore: the
+ * liquid fill itself (MobileMenuWave, an SVG path redrawn every frame) is
+ * the entire reveal. When closed its path describes zero area, so the
+ * container is naturally invisible/transparent with nothing extra to hide.
+ * `inert` (set in Navbar.tsx) handles removing it from focus/hit-testing.
+ * `.bar` sits in the same stacking context with a higher z-index and an
+ * opaque background, so it stays visibly on top of this overlay.
+ */
 .mobileMenu {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-  padding: 20px 24px;
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 4px rgba(182, 182, 182, 0.05);
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
 }
 
+.mobileContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  padding: 96px 24px 24px;
+}
+
+.mobileLinks {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * Each link fades/slides in only once MobileMenuWave reports the fill has
+ * finished rising (.revealed on the parent), with a per-index stagger delay
+ * set inline from Navbar.tsx — mirrors the reference's cascade, generalized
+ * instead of hardcoded per nth-child since the link list is data-driven.
+ */
 .mobileLink {
-  font-size: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-surface-muted);
+  font-size: 18px;
   font-weight: 500;
   color: var(--color-text);
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 450ms ease,
+    transform 450ms ease;
 }
 
-.mobileIcons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-surface-muted);
+.mobileLinks > .mobileLink:last-child {
+  border-bottom: none;
 }
 
-.mobileIconLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-brand);
+.revealed .mobileLink {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobileAddButton {
+  align-self: flex-start;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 450ms ease,
+    transform 450ms ease;
+}
+
+.revealed .mobileAddButton {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (min-width: 768px) {
@@ -121,6 +170,14 @@
     display: flex;
     align-items: center;
     gap: 16px;
+  }
+
+  .logoMobile {
+    display: none;
+  }
+
+  .logoDesktop {
+    display: block;
   }
 
   .menuButton,
