@@ -3,7 +3,6 @@ type HeartIconProps = {
   className?: string;
 };
 
-// Favorite icon extracted from the KASA-NEW Figma "call to action" component.
 export function HeartIcon({ filled = false, className }: HeartIconProps) {
   return (
     <svg

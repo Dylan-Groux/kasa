@@ -13,8 +13,8 @@ type ImageUploadFieldProps = {
 export function ImageUploadField({ label, name }: ImageUploadFieldProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Object URLs are only valid for this tab's lifetime — release the old one
-  // whenever the selection changes or the field unmounts, to avoid leaking it.
+  // Les object URLs ne vivent que le temps de l'onglet — on libère l'ancienne
+  // à chaque changement de sélection ou au démontage, pour éviter une fuite.
   useEffect(() => {
     if (!previewUrl) {
       return;

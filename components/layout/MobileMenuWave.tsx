@@ -11,10 +11,10 @@ type MobileMenuWaveProps = {
 const DURATION_MS = 900;
 const POINTS = 40;
 
-// Draws one frame of the liquid fill: `p` (0→1) is how full the screen is.
-// Amplitude peaks mid-transition and flattens back to 0 at both ends (0 and
-// 1), so the wave crest rises then settles flat instead of leaving a
-// permanent ripple once fully open or fully closed.
+// Dessine une frame du remplissage liquide : `p` (0→1) est le taux de
+// remplissage. L'amplitude est maximale au milieu et retombe à 0 aux deux
+// bouts, pour que la vague s'aplatisse une fois pleine ou vide au lieu de
+// laisser une ondulation permanente.
 function buildWavePath(p: number, phase: number): string {
   const baseline = 100 - p * 100;
   const amplitude = 7 * Math.sin(p * Math.PI);
@@ -28,10 +28,9 @@ function buildWavePath(p: number, phase: number): string {
   return d;
 }
 
-// Imperative rAF loop driving an SVG path's `d` attribute directly (bypassing
-// React state per-frame, same as the reference implementation) — a state
-// update on every animation frame would be both unnecessary and much slower
-// than mutating the path node straight from the ref.
+// Boucle rAF impérative qui modifie directement l'attribut `d` du path SVG
+// (sans passer par le state React à chaque frame) — un setState par frame
+// serait inutile et bien plus lent qu'une mutation directe via la ref.
 export function MobileMenuWave({ isOpen, onRevealedChange }: MobileMenuWaveProps) {
   const pathRef = useRef<SVGPathElement>(null);
   const frameRef = useRef<number | undefined>(undefined);
@@ -43,9 +42,9 @@ export function MobileMenuWave({ isOpen, onRevealedChange }: MobileMenuWaveProps
       return;
     }
 
-    // Closing hides the text immediately (not at the end of the drain) so it
-    // disappears first and the wave retreats after — opening still reveals
-    // the text only once the wave has fully risen.
+    // À la fermeture, le texte disparaît tout de suite (pas à la fin de la
+    // vidange) — il part avant que la vague ne se retire. À l'ouverture, le
+    // texte n'apparaît qu'une fois la vague complètement montée.
     if (!isOpen) {
       onRevealedChange(false);
     }
@@ -58,7 +57,7 @@ export function MobileMenuWave({ isOpen, onRevealedChange }: MobileMenuWaveProps
     function frame(now: number) {
       const t = Math.min((now - start) / DURATION_MS, 1);
       const eased = 1 - (1 - t) ** 3; // easeOutCubic
-      phaseRef.current += 0.15; // the crest keeps rolling while it rises/drains
+      phaseRef.current += 0.15; // la crête continue de rouler pendant la montée/descente
       path!.setAttribute('d', buildWavePath(isOpen ? eased : 1 - eased, phaseRef.current));
 
       if (t < 1) {

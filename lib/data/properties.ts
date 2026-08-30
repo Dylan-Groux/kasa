@@ -8,10 +8,11 @@ import {
 } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 
 /**
- * Fetches the homepage listing straight from the backend. Runs in a Server
- * Component, so it talks to BACKEND_API_URL directly instead of bouncing
- * through our own /api/properties proxy route. Any failure (network, bad
- * shape) degrades to an empty list rather than crashing the homepage.
+ * Récupère la liste de la page d'accueil directement depuis le backend.
+ * Tourne dans un Server Component, donc parle à BACKEND_API_URL en direct
+ * plutôt que de passer par notre route proxy /api/properties. Toute erreur
+ * (réseau, forme invalide) dégrade vers une liste vide plutôt que de
+ * planter la page.
  */
 export async function getHomeProperties(): Promise<PropertyBaseSchema[]> {
   const backendUrl = process.env.BACKEND_API_URL;
@@ -122,11 +123,11 @@ export const homeProperties: PropertyBaseSchema[] = [
 ];
 
 /**
- * Fetches one property's full detail for `/logement/:slug`. The backend has
- * no slug-based lookup, so this resolves the id from the listing first, then
- * fetches `/api/properties/:id` for the pictures/equipments/tags the listing
- * doesn't carry. Any failure (network, bad shape, unknown slug) degrades to
- * `null` so the page can render its own not-found state.
+ * Récupère le détail complet d'une propriété pour `/logement/:slug`. Le
+ * backend n'a pas de lookup par slug : on résout d'abord l'id depuis la
+ * liste, puis on fetch `/api/properties/:id` pour les pictures/equipments/
+ * tags absents de la liste. Toute erreur (réseau, forme invalide, slug
+ * inconnu) dégrade vers `null` pour laisser la page gérer son état "introuvable".
  */
 export async function getPropertyDetailBySlug(slug: string): Promise<PropertyDetailSchema | null> {
   const backendUrl = process.env.BACKEND_API_URL;

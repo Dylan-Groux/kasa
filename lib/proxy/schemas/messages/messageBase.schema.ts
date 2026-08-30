@@ -1,10 +1,9 @@
 import { z } from 'zod';
 
 /**
- * Trimmed user shape used wherever the messaging API references "the other
- * person" (message sender/receiver, a conversation's other participant) —
- * same shape as `propertyBase.schema.ts`'s `host`, without `role`: role is
- * an authz concept, never exposed about a different user than yourself.
+ * Forme réduite d'utilisateur pour "l'autre personne" côté messagerie
+ * (expéditeur/destinataire, autre participant) — sans `role` : c'est une
+ * notion d'autorisation, jamais exposée à propos d'un autre utilisateur.
  */
 export const messageParticipantSchema = z.object({
   id: z.number(),

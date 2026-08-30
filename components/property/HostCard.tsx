@@ -20,8 +20,12 @@ export function HostCard({ host, rating }: HostCardProps) {
   const { session, isAuthenticated } = useAuth();
   const [isStartingConversation, setIsStartingConversation] = useState(false);
 
-  // Find-or-create a conversation with the host, then jump straight to its thread —
-  // this is the messaging feature's only entry point outside /messagerie itself.
+  /**
+   * Trouve ou crée une conversation avec l'hôte, puis redirige vers son fil —
+   * seul point d'entrée de la messagerie en dehors de /messagerie elle-même.
+   * @route /api/conversations
+   * @method POST
+   */
   async function handleMessageHost() {
     if (!isAuthenticated || !session) {
       router.push('/login');

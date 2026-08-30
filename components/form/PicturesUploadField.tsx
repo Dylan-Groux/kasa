@@ -19,7 +19,7 @@ export function PicturesUploadField({ label, files, onChange }: PicturesUploadFi
     if (added.length > 0) {
       onChange([...files, ...added]);
     }
-    // Reset so selecting the same file again after removing it still fires onChange.
+    // Reset pour que resélectionner le même fichier après l'avoir retiré redéclenche bien onChange.
     event.target.value = '';
   }
 

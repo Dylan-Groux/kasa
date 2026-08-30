@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <main id="main-content" className={styles.main}>
       <AuthPageLayout

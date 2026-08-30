@@ -49,7 +49,7 @@ describe('AuthContext', () => {
   });
 
   it('throws when useAuth is called outside an AuthProvider', () => {
-    // Swallow the expected React error boundary console noise for this assertion.
+    // Étouffe le bruit console attendu de l'error boundary React pour cette assertion.
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Consumer />)).toThrow('useAuth must be used within an AuthProvider');
     consoleError.mockRestore();

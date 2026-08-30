@@ -12,16 +12,14 @@ type MessagerieShellProps = {
 };
 
 /**
- * Responsive master-detail shell, matching the Figma frames: one combined
- * desktop screen ("Messagerie") vs. two separate mobile screens ("messagerie
- * mobile liste" / "messagerie mobile detail"). Both panes always render in
- * the DOM (same pattern as Navbar/PropertyDetail — CSS Modules + @media, no
- * separate mobile routes); on mobile only one is visible at a time, decided
- * by whether the URL has a conversation id (deep-link) rather than local UI
- * state. The mobile header (back link + "Messages" title) swaps content
- * based on that same condition — back goes to "/" from the list, to
- * "/messagerie" from a thread — while desktop shows a single static header
- * since both panes are already visible together there.
+ * Shell responsive en maître-détail : un écran desktop combiné vs. deux
+ * écrans mobiles séparés. Les deux volets sont toujours dans le DOM (CSS
+ * Modules + @media, pas de routes mobiles séparées) ; sur mobile, un seul
+ * est visible à la fois, selon que l'URL contient un id de conversation
+ * (deep-link) plutôt qu'un state local. L'en-tête mobile (retour + titre)
+ * change selon cette même condition — retour vers "/" depuis la liste, vers
+ * "/messagerie" depuis un fil — desktop affiche un en-tête statique unique
+ * puisque les deux volets sont déjà visibles ensemble.
  */
 export function MessagerieShell({ children }: MessagerieShellProps) {
   const pathname = usePathname();

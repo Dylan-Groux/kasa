@@ -9,10 +9,10 @@ type RequireAuthProps = {
 };
 
 /**
- * Client-side guard: the session lives in memory only (see AuthProvider), so
- * there's no cookie a server middleware could check on a hard navigation —
- * gating has to happen here, after the provider has mounted. Redirects to
- * /login and renders nothing until an authenticated session is confirmed.
+ * Garde côté client : la session vit uniquement en mémoire (voir AuthProvider),
+ * donc pas de cookie qu'un middleware serveur pourrait vérifier au chargement —
+ * le contrôle doit se faire ici, une fois le provider monté. Redirige vers
+ * /login et n'affiche rien tant que la session n'est pas confirmée.
  */
 export function RequireAuth({ children }: RequireAuthProps) {
   const router = useRouter();

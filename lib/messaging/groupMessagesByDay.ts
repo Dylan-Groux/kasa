@@ -8,11 +8,11 @@ export type MessageDayGroup = {
 };
 
 /**
- * Buckets a flat, chronologically-sorted message list by local calendar day
- * so the UI can render a date separator between days. Done client-side
- * because the backend returns UTC timestamps without grouping (see
- * conversationMessages.schema.ts) — only the viewer's browser reliably knows
- * which timezone is relevant for "today"/"yesterday".
+ * Regroupe une liste de messages triée chronologiquement par jour calendaire
+ * local, pour afficher un séparateur de date. Fait côté client car le
+ * backend renvoie des timestamps UTC non groupés (voir
+ * conversationMessages.schema.ts) — seul le navigateur connaît le fuseau
+ * horaire à utiliser pour "aujourd'hui"/"hier".
  */
 export function groupMessagesByDay(messages: MessageSchema[]): MessageDayGroup[] {
   const groups: MessageDayGroup[] = [];

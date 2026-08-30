@@ -178,3 +178,47 @@ sequenceDiagram
 visiteurs non connectés en amont (redirection `/login`), mais ne filtre pas
 par rôle : un compte `client` arrive jusqu'au formulaire et n'est bloqué
 qu'à la soumission (cf. finding ci-dessus sur les rôles).
+
+### 4. Consultation et envoi de messages
+
+```mermaid
+sequenceDiagram
+    participant U as Utilisateur connecté
+    participant List as ConversationList
+    participant Thread as ConversationThreadView
+    participant Ctx as MessagingContext
+    participant Proxy as /api/conversations/**
+    participant API as Backend
+
+    U->>List: ouvre /messagerie
+    Ctx->>Proxy: GET /api/conversations
+    Proxy->>API: GET /api/conversations
+    API-->>Ctx: [Conversation...]
+    loop toutes les 15s
+        Ctx->>Proxy: GET /api/conversations
+    end
+    List-->>U: liste triée, badge non-lu (calculé côté client)
+
+    U->>Thread: ouvre une conversation
+    Thread->>Proxy: GET /api/conversations/:id/messages
+    Proxy->>API: GET /api/conversations/:id/messages
+    API-->>Thread: [Message...]
+    Thread->>Ctx: markConversationSeen(id, now)
+
+    U->>Thread: envoie un message
+    Thread->>Proxy: POST /api/conversations/:id/messages<br/>Authorization: Bearer token
+    Proxy->>API: POST /api/conversations/:id/messages
+    API-->>Thread: 201 Message
+    Thread->>Ctx: recordSentMessage(id, message)
+    Ctx-->>List: aperçu + tri mis à jour immédiatement (sans attendre le poll)
+```
+
+`MessagingProvider` (voir `lib/messaging/MessagingContext.tsx`) n'est monté
+que sous `app/messagerie/layout.tsx` — pas dans le layout racine — donc rien
+en dehors de `/messagerie` (y compris le Navbar) ne peut lire
+`unreadCount` : c'est un choix de scope assumé, pas un oubli, mais à savoir
+si un badge de non-lus est prévu ailleurs dans l'UI un jour. Le statut
+lu/non-lu est une approximation **client uniquement** (comparaison de
+timestamps stockée en `localStorage`, pas de flag côté backend) — elle ne
+survit pas à un `localStorage.clear()` et ne se synchronise pas entre
+appareils.

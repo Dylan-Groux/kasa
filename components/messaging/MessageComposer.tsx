@@ -8,7 +8,6 @@ type MessageComposerProps = {
   onSend: (content: string) => Promise<void>;
 };
 
-// Local input state only — the parent owns the actual send request and its error handling.
 export function MessageComposer({ onSend }: MessageComposerProps) {
   const [content, setContent] = useState('');
   const [isSending, setIsSending] = useState(false);

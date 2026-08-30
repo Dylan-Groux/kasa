@@ -8,7 +8,6 @@ type MessageBubbleProps = {
   isOwnMessage: boolean;
 };
 
-// The reusable "message card": name + time above, avatar and content below, aligned left/right depending on who sent it.
 export function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
   const classes = [styles.row, isOwnMessage ? styles.own : styles.other].join(' ');
 

@@ -16,8 +16,10 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calls the real /api/auth/register proxy route (no mock) and, on success,
-  // drops the { token, user } response straight into the in-memory session.
+  /**
+   * @route /api/auth/register
+   * @method POST
+   */
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);

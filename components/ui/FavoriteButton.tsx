@@ -17,7 +17,7 @@ export function FavoriteButton({ property }: FavoriteButtonProps) {
   const { isFavorite, isPending, toggleFavorite } = useFavorites();
   const isFavorited = isFavorite(property.id);
 
-  // Stops the click from bubbling to the card link underneath it.
+  // Empêche le clic de remonter jusqu'au lien de la carte en dessous.
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();

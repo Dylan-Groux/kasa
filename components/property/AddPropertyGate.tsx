@@ -8,9 +8,9 @@ import { userUpdateResponseSchema } from '@/lib/proxy/schemas/users/userUpdate.s
 import { AddPropertyForm } from './AddPropertyForm';
 import styles from './AddPropertyGate.module.css';
 
-// Only owner/admin accounts can create a property (backend-enforced). A
-// client account sees a way to switch role instead of a form that will
-// 403 on submit.
+// Seuls les comptes owner/admin peuvent créer une propriété (imposé par le
+// backend). Un compte client voit un moyen de changer de rôle plutôt qu'un
+// formulaire qui échouerait en 403 à la soumission.
 export function AddPropertyGate() {
   const { session } = useAuth();
 
@@ -29,6 +29,10 @@ function BecomeOwnerPrompt() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * @route /api/users/:id
+   * @method PATCH
+   */
   async function handleBecomeOwner() {
     if (!session) {
       return;
@@ -67,9 +71,9 @@ function BecomeOwnerPrompt() {
     }
   }
 
-  // The role just changed in the backend, but it's also baked into the JWT
-  // already held by this session — only a fresh login issues a token with
-  // the new role, so the switch can't be transparent.
+  // Le rôle vient de changer côté backend, mais il est aussi figé dans le
+  // JWT déjà détenu par cette session — seule une reconnexion émet un token
+  // avec le nouveau rôle, donc le changement ne peut pas être transparent.
   function handleReconnect() {
     logout();
     router.push('/login');

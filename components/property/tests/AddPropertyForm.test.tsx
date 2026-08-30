@@ -115,7 +115,7 @@ describe('AddPropertyForm', () => {
       'Image de couverture : fichier trop volumineux',
     );
     expect(push).not.toHaveBeenCalled();
-    // The property is never created once its cover upload has failed.
+    // La propriété n'est jamais créée si l'upload de sa cover a échoué.
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe('/api/uploads/image');
 

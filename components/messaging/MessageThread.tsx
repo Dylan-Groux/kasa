@@ -9,7 +9,6 @@ type MessageThreadProps = {
   currentUserId: number;
 };
 
-// Groups messages by local day (see groupMessagesByDay) and renders a date separator between each day's messages.
 export function MessageThread({ messages, currentUserId }: MessageThreadProps) {
   const days = groupMessagesByDay(messages);
 

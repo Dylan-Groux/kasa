@@ -8,9 +8,8 @@ import {
 } from '@/lib/proxy/schemas/conversations/conversationBase.schema';
 import type { MessageSchema } from '@/lib/proxy/schemas/messages/messageBase.schema';
 
-// Refetch interval for the conversation list: the backend has no push
-// mechanism (no websocket/SSE), so a new conversation or message from
-// someone else only shows up on the next poll rather than instantly.
+// Intervalle de rafraîchissement de la liste : pas de websocket/SSE côté
+// backend, donc une nouvelle conversation/message n'apparaît qu'au poll suivant.
 const POLL_INTERVAL_MS = 15_000;
 
 type LastSeenMap = Record<string, string>;
@@ -31,12 +30,11 @@ function lastSeenStorageKey(userId: number): string {
   return `kasa:messaging:lastSeen:${userId}`;
 }
 
-// "Unread" is a client-only approximation: the backend doesn't track a
-// read/unread flag per message, so this compares each conversation's last
-// message timestamp against a per-viewer "last opened" timestamp kept in
-// localStorage (see markConversationSeen). It resets if storage is cleared
-// and doesn't sync across devices — acceptable for a v1 badge, not an
-// authoritative unread count.
+// "Non lu" est une approximation côté client : le backend n'a pas de flag
+// lu/non-lu par message, donc on compare le timestamp du dernier message à
+// un timestamp "dernière ouverture" stocké en localStorage (voir
+// markConversationSeen). Ne survit pas à un clear du storage, pas synchronisé
+// entre appareils — suffisant pour un badge v1, pas un compteur fiable.
 function isUnread(
   conversation: ConversationSchema,
   currentUserId: number,
@@ -52,24 +50,22 @@ function isUnread(
 }
 
 /**
- * Single source of truth for the logged-in user's conversation list, scoped
- * to the /messagerie route tree (mounted in app/messagerie/layout.tsx, not
- * the root layout — nothing outside messaging needs this). Loads once a
- * session is available, then polls (see POLL_INTERVAL_MS) so a conversation
- * or message started by someone else eventually shows up without a manual
- * reload. `recordSentMessage` lets the thread view bump a conversation's
- * preview + move it to the top locally right after a successful send,
- * without waiting for the next poll.
+ * Source unique de la liste de conversations, limitée à l'arborescence
+ * /messagerie (monté dans app/messagerie/layout.tsx, pas le layout racine —
+ * rien en dehors de la messagerie n'en a besoin). Charge dès qu'une session
+ * existe, puis poll (voir POLL_INTERVAL_MS). `recordSentMessage` met à jour
+ * l'aperçu et remonte la conversation en tête localement juste après un envoi
+ * réussi, sans attendre le prochain poll.
  */
 export function MessagingProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const [conversations, setConversations] = useState<ConversationSchema[]>([]);
   const [loadedForToken, setLoadedForToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Lazy-initialized (not synced via an effect): RequireAuth only ever
-  // mounts this provider once a session exists, and unmounts it on logout —
-  // so a fresh session always means a fresh mount, and reading localStorage
-  // once here is enough to pick up the right user's "seen" state.
+  // Initialisation paresseuse (pas de sync via un effect) : RequireAuth ne
+  // monte ce provider qu'avec une session existante, et le démonte au
+  // logout — une nouvelle session = un nouveau montage, donc lire
+  // localStorage une seule fois ici suffit.
   const [lastSeenAt, setLastSeenAt] = useState<LastSeenMap>(() => {
     if (!session || typeof window === 'undefined') {
       return {};
@@ -90,6 +86,10 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
+    /**
+     * @route /api/conversations
+     * @method GET
+     */
     function fetchConversations() {
       if (!session) {
         return;
@@ -140,8 +140,8 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
       }
 
       setLastSeenAt((current) => {
-        // Never move a stored "seen" timestamp backwards — a poll racing a
-        // markConversationSeen call could otherwise resurrect an already-read badge.
+        // Ne jamais faire reculer un timestamp "vu" — un poll concurrent à
+        // markConversationSeen pourrait sinon faire réapparaître un badge déjà lu.
         if (current[conversationId] && new Date(current[conversationId]) >= new Date(seenAt)) {
           return current;
         }
@@ -150,7 +150,7 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
         try {
           window.localStorage.setItem(lastSeenStorageKey(session.user.id), JSON.stringify(next));
         } catch {
-          // Storage unavailable (private browsing, quota) — the badge just won't persist across reloads.
+          // Storage indisponible (navigation privée, quota) — le badge ne persiste juste pas au reload.
         }
         return next;
       });
@@ -175,7 +175,7 @@ export function MessagingProvider({ children }: { children: React.ReactNode }) {
         updated_at: message.created_at,
       };
 
-      // Move the conversation to the top, mirroring "most recent activity first".
+      // Remonte la conversation en tête, activité la plus récente en premier.
       return [updated, ...current.filter((conversation) => conversation.id !== conversationId)];
     });
   }, []);

@@ -74,7 +74,7 @@
   height: 19px;
 }
 
-/* Native file input is visually hidden; the label above acts as the control. */
+/* Input file natif caché visuellement ; le label au-dessus sert de contrôle. */
 .input {
   position: absolute;
   width: 1px;

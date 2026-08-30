@@ -105,10 +105,10 @@ describe('FavoritesContext', () => {
 
     fireEvent.click(screen.getByText('toggle'));
 
-    // The mocked fetch rejects almost immediately, so the optimistic flip to
-    // "true" and the rollback both happen before we get a chance to assert —
-    // what matters is that a failed toggle always settles back to its prior
-    // state rather than sticking on the (never-persisted) optimistic value.
+    // Le fetch mocké rejette presque immédiatement, donc le flip optimiste
+    // vers "true" et le rollback ont déjà eu lieu avant qu'on puisse
+    // observer l'état intermédiaire — ce qui compte, c'est qu'un toggle
+    // échoué revienne toujours à l'état précédent.
     await waitFor(() => expect(screen.getByText('favorited: false')).toBeInTheDocument());
 
     consoleError.mockRestore();

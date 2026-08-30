@@ -8,7 +8,6 @@ type AvatarProps = {
   className?: string;
 };
 
-// Same avatar-with-initial-fallback pattern HostCard used inline, extracted so messaging can reuse it at different sizes.
 export function Avatar({ name, picture, size = 40, className }: AvatarProps) {
   const classes = [styles.avatar, className].filter(Boolean).join(' ');
 

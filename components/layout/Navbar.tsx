@@ -16,9 +16,9 @@ const NAV_LINKS = [
   { href: '/a-propos', label: 'À propos' },
 ];
 
-// Order and content match the mobile menu reference: plain text links (no
-// icons), Messagerie/Favoris included inline rather than in a separate
-// icon row, "Ajouter un logement" last as a full brand button.
+// Menu mobile : liens texte simples (pas d'icônes), Messagerie/Favoris
+// inclus dans la liste plutôt que dans une rangée d'icônes à part,
+// "Ajouter un logement" en dernier sous forme de bouton.
 const MOBILE_NAV_LINKS = [
   { href: '/', label: 'Accueil' },
   { href: '/a-propos', label: 'À propos' },
@@ -28,9 +28,8 @@ const MOBILE_NAV_LINKS = [
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // True only once the wave has fully finished rising (or draining) — the nav
-  // links fade in on top of the liquid only after it has filled the screen,
-  // and disappear once it has fully drained, rather than moving with it.
+  // Vrai seulement quand la vague a fini de monter (ou de descendre) — les
+  // liens apparaissent en fondu une fois l'écran rempli, pas pendant l'animation.
   const [isRevealed, setIsRevealed] = useState(false);
   const handleRevealedChange = useCallback((revealed: boolean) => setIsRevealed(revealed), []);
 
@@ -77,10 +76,10 @@ export function Navbar() {
         </button>
       </div>
 
-      {/* Always mounted (not conditional on isMenuOpen) so the wave can
-          animate in both directions. `inert` (not aria-hidden) removes it
-          from focus/hit-testing/the accessibility tree the instant it starts
-          closing, while still letting the drain animation play visually. */}
+      {/* Toujours monté (pas conditionné à isMenuOpen) pour que la vague
+          puisse s'animer dans les deux sens. `inert` (pas aria-hidden) le
+          retire du focus/de l'accessibilité dès la fermeture, tout en
+          laissant l'animation de fermeture se jouer visuellement. */}
       <nav
         id="mobile-menu"
         className={styles.mobileMenu}

@@ -5,10 +5,10 @@
 }
 
 /*
- * Padding lives on .bar (not .wrapper) so its opaque background — needed to
- * stay visible above .mobileMenu below — covers the exact same box as
- * .wrapper, with no uncovered padding strip the fixed overlay could show
- * through.
+ * Le padding est sur .bar (pas .wrapper) pour que son fond opaque — requis
+ * pour rester visible au-dessus de .mobileMenu — couvre exactement la même
+ * zone que .wrapper, sans bande de padding non couverte où l'overlay fixe
+ * pourrait apparaître.
  */
 .bar {
   position: relative;
@@ -73,14 +73,13 @@
 }
 
 /*
- * Full-screen mobile menu overlay. Always mounted (see Navbar.tsx) — there's
- * no CSS transform/visibility toggle on this container at all anymore: the
- * liquid fill itself (MobileMenuWave, an SVG path redrawn every frame) is
- * the entire reveal. When closed its path describes zero area, so the
- * container is naturally invisible/transparent with nothing extra to hide.
- * `inert` (set in Navbar.tsx) handles removing it from focus/hit-testing.
- * `.bar` sits in the same stacking context with a higher z-index and an
- * opaque background, so it stays visibly on top of this overlay.
+ * Overlay plein écran du menu mobile. Toujours monté (voir Navbar.tsx) —
+ * aucun transform/visibility CSS ici : c'est le remplissage liquide lui-même
+ * (MobileMenuWave, un path SVG redessiné à chaque frame) qui fait toute la
+ * révélation. Fermé, son path a une aire nulle, donc le conteneur est
+ * naturellement invisible sans rien à cacher en plus. `inert` (posé dans
+ * Navbar.tsx) le retire du focus/hit-testing. `.bar` reste visuellement
+ * au-dessus grâce à un z-index plus élevé et un fond opaque.
  */
 .mobileMenu {
   position: fixed;
@@ -105,10 +104,9 @@
 }
 
 /*
- * Each link fades/slides in only once MobileMenuWave reports the fill has
- * finished rising (.revealed on the parent), with a per-index stagger delay
- * set inline from Navbar.tsx — mirrors the reference's cascade, generalized
- * instead of hardcoded per nth-child since the link list is data-driven.
+ * Chaque lien apparaît en fondu seulement une fois le remplissage terminé
+ * (.revealed sur le parent), avec un délai par index posé en inline depuis
+ * Navbar.tsx — la liste étant générée dynamiquement, pas de nth-child en dur.
  */
 .mobileLink {
   padding: 14px 0;

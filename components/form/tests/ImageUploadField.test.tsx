@@ -5,8 +5,8 @@ import { ImageUploadField } from '../ImageUploadField';
 describe('ImageUploadField', () => {
   beforeEach(() => {
     let callCount = 0;
-    // A distinct URL per call: React bails out of a state update (and skips
-    // the effect) when setPreviewUrl receives the same string as before.
+    // Une URL différente à chaque appel : React ignore un setState (et
+    // l'effect associé) quand setPreviewUrl reçoit la même string qu'avant.
     URL.createObjectURL = vi.fn(() => `blob:mock-preview-${callCount++}`);
     URL.revokeObjectURL = vi.fn();
   });

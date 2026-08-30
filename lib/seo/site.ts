@@ -1,12 +1,14 @@
 export const SITE_NAME = 'Kasa';
 
-// Vercel injects VERCEL_PROJECT_PRODUCTION_URL (the stable production
-// domain) into every build, so Vercel deployments need no manual config.
-// Other hosts (o2switch, Docker, VPS...) have no equivalent signal and must
-// set SITE_URL explicitly. Localhost is the last-resort dev fallback.
-// Server-only (like BACKEND_API_URL): only used in Server Components, route
-// handlers, sitemap.ts and robots.ts — never read from the client, so no
-// NEXT_PUBLIC_ prefix needed, and it can be changed without a rebuild.
+/**
+ * Résout l'URL publique du site (sitemap, JSON-LD, canonical...).
+ * @objectif Vercel injecte VERCEL_PROJECT_PRODUCTION_URL (domaine de prod
+ * stable) à chaque build, donc rien à configurer sur Vercel. Les autres
+ * hébergeurs (o2switch, Docker, VPS...) n'ont pas cet équivalent et doivent
+ * définir SITE_URL explicitement. Localhost est le fallback de dev en dernier recours.
+ * @note Server-only (comme BACKEND_API_URL) : jamais lu côté client, donc pas
+ * de préfixe NEXT_PUBLIC_, et modifiable sans rebuild.
+ */
 function resolveSiteUrl(): string {
   if (process.env.SITE_URL) {
     return process.env.SITE_URL;

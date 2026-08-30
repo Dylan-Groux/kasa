@@ -9,7 +9,6 @@ type LogoProps = {
 const VARIANTS = {
   default: { src: '/images/icons/logo.svg', width: 113, height: 40 },
   footer: { src: '/images/icons/logo-footer.svg', width: 46, height: 53 },
-  // Icon-only house mark (no "KASA" wordmark) — matches the mobile navbar reference.
   icon: { src: '/images/icons/logo-footer.svg', width: 32, height: 37 },
 } as const;
 

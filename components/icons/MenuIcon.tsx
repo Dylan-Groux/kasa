@@ -2,7 +2,6 @@ type MenuIconProps = {
   className?: string;
 };
 
-// Mobile navigation trigger icon extracted from the KASA-NEW Figma file.
 export function MenuIcon({ className }: MenuIconProps) {
   return (
     <svg

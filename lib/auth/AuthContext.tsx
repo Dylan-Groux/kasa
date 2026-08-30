@@ -15,10 +15,11 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
- * Holds the logged-in session (token + user, shaped like POST /auth/login's
- * response) in memory only — no localStorage/cookies, so it resets on every
- * full page reload. Swap for a persisted store later without touching
- * consumers, since they only ever go through `useAuth()`.
+ * Fonction de contexte pour l'authentification.
+ * @objectif Garde la session (token + user, même forme que la réponse de
+ * @route POST /auth/login) en mémoire uniquement — pas de localStorage/cookies,
+ * @note donc reset à chaque reload complet. Remplaçable par un store persisté
+ * plus tard sans toucher aux consommateurs, qui passent tous par `useAuth()`.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);

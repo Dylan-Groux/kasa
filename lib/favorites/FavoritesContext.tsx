@@ -16,24 +16,23 @@ type FavoritesContextValue = {
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
 /**
- * Single source of truth for the logged-in user's favorited properties,
- * shared by every FavoriteButton and by the /favoris page itself (it holds
- * full PropertyBase objects, not just ids, so /favoris can render straight
- * from it without a second fetch). Loads the list from the backend when a
- * session appears and clears it on logout — the session token lives in
- * memory only (see AuthContext), so this can't be fetched server-side.
+ * Source unique des favoris de l'utilisateur, partagée par tous les
+ * FavoriteButton et par la page /favoris (contient des PropertyBase
+ * complets, pas juste des ids, pour éviter un second fetch). Charge la
+ * liste dès qu'une session existe et la vide au logout — le token vit en
+ * mémoire uniquement (voir AuthContext), impossible à fetch côté serveur.
  *
- * Toggling is optimistic: the UI flips immediately and only rolls back if
- * the backend call actually fails. The favorite endpoints are idempotent
- * ({ok:true} regardless of prior state), so the only guard needed is
- * blocking a second click on the same property while one is in flight.
+ * Le toggle est optimiste : l'UI change immédiatement et ne revient en
+ * arrière que si l'appel backend échoue vraiment. Les endpoints favoris
+ * sont idempotents ({ok:true} peu importe l'état précédent), donc le seul
+ * garde-fou nécessaire est de bloquer un second clic pendant qu'un premier
+ * est en cours.
  */
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const [favorites, setFavorites] = useState<PropertyBaseSchema[]>([]);
-  // Rather than a separate isLoading flag kept in sync via setState in the
-  // effect (which react-hooks/set-state-in-effect flags), loading is derived:
-  // true whenever there's a session but its token hasn't finished a fetch yet.
+  // Loading dérivé plutôt qu'un flag séparé mis à jour via setState dans
+  // l'effect : vrai tant qu'une session existe sans que son token ait fini de fetch.
   const [loadedForToken, setLoadedForToken] = useState<string | null>(null);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const isLoading = session !== null && loadedForToken !== session.token;
@@ -45,30 +44,46 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
-    fetch(`/api/users/${session.user.id}/favorites`, {
-      headers: { Authorization: `Bearer ${session.token}` },
-    })
-      .then((response) => (response.ok ? response.json() : Promise.reject(response)))
-      .then((rawBody: unknown) => {
-        const parsed = favoriteListResponseSchema.safeParse(rawBody);
-        if (!cancelled && parsed.success) {
-          setFavorites(parsed.data);
-        }
+    /**
+     * @route /api/users/:id/favorites
+     * @method GET
+     */
+    function fetchFavorites() {
+      if (!session) {
+        return;
+      }
+
+      fetch(`/api/users/${session.user.id}/favorites`, {
+        headers: { Authorization: `Bearer ${session.token}` },
       })
-      .catch((error: unknown) => {
-        console.error('GET /api/users/:id/favorites failed', error);
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoadedForToken(session.token);
-        }
-      });
+        .then((response) => (response.ok ? response.json() : Promise.reject(response)))
+        .then((rawBody: unknown) => {
+          const parsed = favoriteListResponseSchema.safeParse(rawBody);
+          if (!cancelled && parsed.success) {
+            setFavorites(parsed.data);
+          }
+        })
+        .catch((error: unknown) => {
+          console.error('GET /api/users/:id/favorites failed', error);
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoadedForToken(session.token);
+          }
+        });
+    }
+
+    fetchFavorites();
 
     return () => {
       cancelled = true;
     };
   }, [session]);
 
+  /**
+   * @route /api/properties/:id/favorite
+   * @method POST, DELETE
+   */
   const toggleFavorite = useCallback(
     (property: PropertyBaseSchema) => {
       if (!session || pendingIds.has(property.id)) {
@@ -113,9 +128,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<FavoritesContextValue>(() => {
-    // Gate the exposed list on `session` (rather than resetting `favorites`
-    // via setState on logout) so a token swap can't briefly leak the
-    // previous user's favorites before the new fetch resolves.
+    // La liste exposée dépend de `session` (plutôt qu'un reset de
+    // `favorites` au logout) pour qu'un changement de token ne laisse pas
+    // fuiter brièvement les favoris du user précédent avant le nouveau fetch.
     const activeFavorites = session ? favorites : [];
 
     return {

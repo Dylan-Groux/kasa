@@ -20,8 +20,7 @@ type ButtonAsButton = ButtonOwnProps & { href?: undefined } & Omit<
 
 type ButtonProps = ButtonAsLink | ButtonAsButton;
 
-// Matches the Figma "call to action" component: same look whether it
-// navigates (Link) or triggers an action (button).
+// Même rendu que ce soit un lien (navigation) ou un bouton (action).
 export function Button({ variant = 'muted', icon, children, className, ...rest }: ButtonProps) {
   const classes = [styles.button, styles[variant], className].filter(Boolean).join(' ');
 

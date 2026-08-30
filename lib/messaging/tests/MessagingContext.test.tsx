@@ -54,8 +54,8 @@ describe('MessagingContext unread tracking', () => {
     };
     vi.stubGlobal(
       'fetch',
-      // A fresh Response per call: the same instance can't have its body read
-      // twice, and this context polls on an interval + refetches on remount.
+      // Une nouvelle Response à chaque appel : le body ne se lit qu'une fois,
+      // et ce context poll à intervalle + refetch au remount.
       vi
         .fn()
         .mockImplementation(() =>
@@ -81,8 +81,8 @@ describe('MessagingContext unread tracking', () => {
     };
     vi.stubGlobal(
       'fetch',
-      // A fresh Response per call: the same instance can't have its body read
-      // twice, and this context polls on an interval + refetches on remount.
+      // Une nouvelle Response à chaque appel : le body ne se lit qu'une fois,
+      // et ce context poll à intervalle + refetch au remount.
       vi
         .fn()
         .mockImplementation(() =>
@@ -100,10 +100,10 @@ describe('MessagingContext unread tracking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'mark conv_1 seen' }));
     expect(screen.getByTestId('unread-count')).toHaveTextContent('0');
 
-    // A fresh mount (e.g. after logging back in) should read the "seen" state
-    // back from localStorage rather than resetting the badge to unread. Wait
-    // for the reload to actually land (not just the pre-fetch default of 0)
-    // before asserting, otherwise this would pass even if localStorage were ignored.
+    // Un nouveau montage (ex: reconnexion) doit relire l'état "vu" depuis
+    // localStorage plutôt que remettre le badge à zéro non-lu. On attend le
+    // rechargement réel (pas juste le 0 par défaut avant fetch), sinon le
+    // test passerait même si localStorage était ignoré.
     unmount();
     render(
       <MessagingProvider>
@@ -123,8 +123,8 @@ describe('MessagingContext unread tracking', () => {
     };
     vi.stubGlobal(
       'fetch',
-      // A fresh Response per call: the same instance can't have its body read
-      // twice, and this context polls on an interval + refetches on remount.
+      // Une nouvelle Response à chaque appel : le body ne se lit qu'une fois,
+      // et ce context poll à intervalle + refetch au remount.
       vi
         .fn()
         .mockImplementation(() =>
@@ -138,8 +138,8 @@ describe('MessagingContext unread tracking', () => {
       </MessagingProvider>,
     );
 
-    // Wait for the conversation to actually be loaded (not just for the initial
-    // pre-fetch render) before asserting the count stayed at zero.
+    // Attend que la conversation soit vraiment chargée (pas juste le rendu
+    // initial avant fetch) avant de vérifier que le compteur reste à zéro.
     await screen.findByRole('button', { name: 'mark conv_1 seen' });
     expect(screen.getByTestId('unread-count')).toHaveTextContent('0');
   });

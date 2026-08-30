@@ -45,8 +45,8 @@ const EQUIPMENTS = [
   'Vue Parc',
 ];
 
-// Marks an error message as safe to show the user as-is (as opposed to a
-// raw network/parsing exception, which stays behind the generic fallback).
+// Marque un message d'erreur comme affichable tel quel à l'utilisateur
+// (contrairement à une exception réseau/parsing brute, qui reste masquée derrière le message générique).
 class UserFacingError extends Error {}
 
 const CATEGORIES = [
@@ -82,9 +82,13 @@ export function AddPropertyForm() {
     setCustomTags((current) => current.filter((current_) => current_ !== tag));
   }
 
-  // Uploads a single file to the proxy and returns the URL the backend
-  // expects in the property payload (cover/host.picture are URLs, not files).
-  // Throws a message-carrying error the catch block below can show as-is.
+  /**
+   * Envoie un fichier au proxy et renvoie l'URL attendue par le backend dans
+   * le payload (cover/host.picture sont des URLs, pas des fichiers). Lève
+   * une UserFacingError affichable telle quelle par le catch plus bas.
+   * @route /api/uploads/image
+   * @method POST
+   */
   async function uploadImage(
     file: File,
     purpose: UploadImagePurpose,
@@ -118,6 +122,10 @@ export function AddPropertyForm() {
     return uploadImageResponseSchema.parse(rawBody).url;
   }
 
+  /**
+   * @route /api/properties
+   * @method POST
+   */
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -126,9 +134,9 @@ export function AddPropertyForm() {
     try {
       const formEl = event.currentTarget;
       const formData = new FormData(formEl);
-      // Read files straight off the inputs rather than via formData.get(name):
-      // more direct for file inputs specifically, and each browser keeps the
-      // actual file content this way (FormData(form) can lose it for files).
+      // Lit les fichiers directement sur les inputs plutôt que via
+      // formData.get(name) : plus fiable pour les inputs file, certains
+      // navigateurs perdant le contenu du fichier avec FormData(form).
       const coverFile = (formEl.elements.namedItem('cover') as HTMLInputElement | null)?.files?.[0];
       const hostPictureFile = (formEl.elements.namedItem('hostPicture') as HTMLInputElement | null)
         ?.files?.[0];
