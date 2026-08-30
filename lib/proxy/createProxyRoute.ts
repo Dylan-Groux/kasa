@@ -77,20 +77,27 @@ async function callBackend(path: string, init?: RequestInit): Promise<BackendRes
 }
 
 /**
- * Valide la réponse JSON du backend avec Zod.
+ * Parse puis valide avec Zod le corps JSON d'une réponse backend réussie.
  * Utilisation: routes qui renvoient un body JSON (GET/POST/PATCH).
  * @template TResponse Type de réponse attendu après validation.
- * @param rawBody JSON brut reçu du backend.
+ * @param response Réponse backend réussie (non consommée).
  * @param responseSchema Schéma Zod de validation de la réponse.
- * @param status Statut HTTP backend à propager (200, 201, etc.).
- * @returns Une réponse JSON validée, ou 502 si la forme est invalide.
+ * @returns Une réponse JSON validée, ou 502 si le corps n'est pas du JSON valide
+ * ou si sa forme ne correspond pas au schéma.
  */
-function parseBackendJson<TResponse>(
-  rawBody: unknown,
+async function parseBackendJson<TResponse>(
+  response: Response,
   responseSchema: ZodType<TResponse>,
-  status: number,
   transform?: (data: TResponse) => TResponse,
-): NextResponse {
+): Promise<NextResponse> {
+  let rawBody: unknown;
+  try {
+    rawBody = await response.json();
+  } catch (error) {
+    console.error('Backend response is not valid JSON', error);
+    return NextResponse.json({ error: 'Unexpected backend response shape' }, { status: 502 });
+  }
+
   const parsed = responseSchema.safeParse(rawBody);
 
   if (!parsed.success) {
@@ -98,7 +105,9 @@ function parseBackendJson<TResponse>(
     return NextResponse.json({ error: 'Unexpected backend response shape' }, { status: 502 });
   }
 
-  return NextResponse.json(transform ? transform(parsed.data) : parsed.data, { status });
+  return NextResponse.json(transform ? transform(parsed.data) : parsed.data, {
+    status: response.status,
+  });
 }
 
 /**
@@ -159,22 +168,22 @@ interface ProxyGetRouteConfig<TResponse, TParams extends Record<string, string>>
 export function createProxyGetRoute<
   TResponse,
   TParams extends Record<string, string> = Record<string, string>,
->({ backendPath, responseSchema, requireAuth }: ProxyGetRouteConfig<TResponse, TParams>) {
+>({ backendPath, responseSchema }: ProxyGetRouteConfig<TResponse, TParams>) {
   return async function GET(
     request?: NextRequest,
     context?: RouteContext<TParams>,
   ): Promise<NextResponse> {
     const path = await resolveBackendPath(backendPath, context);
-    const headers = requireAuth && request ? forwardAuthHeader(request) : undefined;
-    const result = await callBackend(path, headers ? { headers } : undefined);
+    const result = await callBackend(
+      path,
+      request ? { headers: forwardAuthHeader(request) } : undefined,
+    );
 
     if (!result.ok) {
       return result.errorResponse;
     }
 
-    // Valider par parseBackendJson pour s'assurer que la réponse du backend correspond au schéma attendu
-    const rawBody: unknown = await result.response.json();
-    return parseBackendJson(rawBody, responseSchema, result.response.status);
+    return parseBackendJson(result.response, responseSchema);
   };
 }
 
@@ -232,8 +241,7 @@ export function createProxyMutationRoute<TBody, TResponse>({
       return result.errorResponse;
     }
 
-    const rawResponseBody: unknown = await result.response.json();
-    return parseBackendJson(rawResponseBody, responseSchema, result.response.status);
+    return parseBackendJson(result.response, responseSchema);
   };
 }
 
@@ -267,8 +275,7 @@ export function createProxyMultipartRoute<TResponse>({
       return result.errorResponse;
     }
 
-    const rawBody: unknown = await result.response.json();
-    return parseBackendJson(rawBody, responseSchema, result.response.status, transformResponse);
+    return parseBackendJson(result.response, responseSchema, transformResponse);
   };
 }
 
@@ -328,7 +335,6 @@ export function createProxyActionRoute<
       return result.errorResponse;
     }
 
-    const rawBody: unknown = await result.response.json();
-    return parseBackendJson(rawBody, responseSchema, result.response.status);
+    return parseBackendJson(result.response, responseSchema);
   };
 }

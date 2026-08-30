@@ -60,6 +60,19 @@ describe('createProxyRoute', () => {
       expect(response.status).toBe(502);
     });
 
+    it('renvoie 502 si le backend renvoie un JSON invalide', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('not json', { status: 200 })));
+
+      const handler = createProxyGetRoute({
+        backendPath: '/api/items',
+        responseSchema: z.array(itemSchema),
+      });
+
+      const response = await handler();
+
+      expect(response.status).toBe(502);
+    });
+
     it('renvoie 502 si le backend est injoignable', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
 
