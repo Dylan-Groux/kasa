@@ -1,0 +1,12 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.status {
+  padding: 24px 16px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+}

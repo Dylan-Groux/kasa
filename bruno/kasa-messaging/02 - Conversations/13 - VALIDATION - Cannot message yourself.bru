@@ -1,0 +1,27 @@
+meta {
+  name: 13 - VALIDATION - Cannot message yourself
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/conversations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+body:json {
+  {
+    "participant_id": {{userAId}}
+  }
+}
+
+tests {
+  test("400: cannot create a conversation with yourself", function () {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

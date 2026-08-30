@@ -138,6 +138,12 @@ function forwardAuthHeader(request: NextRequest, extra?: HeadersInit): Headers {
 interface ProxyGetRouteConfig<TResponse, TParams extends Record<string, string>> {
   backendPath: BackendPath<TParams>;
   responseSchema: ZodType<TResponse>;
+  // Aucune route GET existante ne forwardait l'Authorization header avant la
+  // messagerie : ok pour des lectures publiques (properties, users/:id), mais
+  // une conversation est privée et le backend doit savoir qui appelle pour
+  // vérifier l'appartenance. Reste opt-in pour ne rien changer aux routes GET
+  // existantes.
+  requireAuth?: boolean;
 }
 
 /**
@@ -147,12 +153,13 @@ interface ProxyGetRouteConfig<TResponse, TParams extends Record<string, string>>
  * @param config Configuration du proxy GET.
  * @param config.backendPath Chemin backend cible, ou fonction dérivée des params de route dynamique.
  * @param config.responseSchema Schéma Zod de validation de la réponse.
+ * @param config.requireAuth Si true, forwarde l'Authorization header de la requête entrante vers le backend.
  * @returns Un handler GET qui appelle le backend puis valide la réponse.
  */
 export function createProxyGetRoute<
   TResponse,
   TParams extends Record<string, string> = Record<string, string>,
->({ backendPath, responseSchema }: ProxyGetRouteConfig<TResponse, TParams>) {
+>({ backendPath, responseSchema, requireAuth }: ProxyGetRouteConfig<TResponse, TParams>) {
   return async function GET(
     request?: NextRequest,
     context?: RouteContext<TParams>,

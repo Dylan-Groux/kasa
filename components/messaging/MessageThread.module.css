@@ -1,0 +1,21 @@
+.thread {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.empty {
+  margin: auto;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+}

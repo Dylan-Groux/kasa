@@ -1,0 +1,26 @@
+meta {
+  name: 5 - Login User B (if already registered)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "bruno-b@kasa-test.local",
+    "password": "Password123!"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const data = res.getBody();
+    bru.setEnvVar("tokenB", data.token);
+    bru.setEnvVar("userBId", data.user.id);
+  }
+}

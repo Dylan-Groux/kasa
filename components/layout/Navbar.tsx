@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { MessageIcon } from '@/components/icons/MessageIcon';
 import { MenuIcon } from '@/components/icons/MenuIcon';
 import { CloseIcon } from '@/components/icons/CloseIcon';
+import { Button } from '@/components/ui/Button';
+import { MobileMenuWave } from './MobileMenuWave';
 import styles from './Navbar.module.css';
 
 const NAV_LINKS = [
@@ -14,8 +16,23 @@ const NAV_LINKS = [
   { href: '/a-propos', label: 'À propos' },
 ];
 
+// Order and content match the mobile menu reference: plain text links (no
+// icons), Messagerie/Favoris included inline rather than in a separate
+// icon row, "Ajouter un logement" last as a full brand button.
+const MOBILE_NAV_LINKS = [
+  { href: '/', label: 'Accueil' },
+  { href: '/a-propos', label: 'À propos' },
+  { href: '/messagerie', label: 'Messagerie' },
+  { href: '/favoris', label: 'Favoris' },
+];
+
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // True only once the wave has fully finished rising (or draining) — the nav
+  // links fade in on top of the liquid only after it has filled the screen,
+  // and disappear once it has fully drained, rather than moving with it.
+  const [isRevealed, setIsRevealed] = useState(false);
+  const handleRevealedChange = useCallback((revealed: boolean) => setIsRevealed(revealed), []);
 
   return (
     <header className={styles.wrapper}>
@@ -28,7 +45,12 @@ export function Navbar() {
           ))}
         </nav>
 
-        <Logo />
+        <div className={styles.logoMobile}>
+          <Logo variant="icon" />
+        </div>
+        <div className={styles.logoDesktop}>
+          <Logo />
+        </div>
 
         <div className={styles.actionsDesktop}>
           <Link href="/logement/ajouter" className={styles.addLink}>
@@ -55,28 +77,45 @@ export function Navbar() {
         </button>
       </div>
 
-      {isMenuOpen ? (
-        <nav id="mobile-menu" className={styles.mobileMenu} aria-label="Navigation mobile">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={styles.mobileLink}>
-              {link.label}
-            </Link>
-          ))}
-          <Link href="/logement/ajouter" className={styles.mobileLink}>
-            +Ajouter un logement
-          </Link>
-          <div className={styles.mobileIcons}>
-            <Link href="/favoris" className={styles.mobileIconLink}>
-              <HeartIcon className={styles.actionIcon} />
-              Favoris
-            </Link>
-            <Link href="/messagerie" className={styles.mobileIconLink}>
-              <MessageIcon className={styles.actionIcon} />
-              Messagerie
-            </Link>
+      {/* Always mounted (not conditional on isMenuOpen) so the wave can
+          animate in both directions. `inert` (not aria-hidden) removes it
+          from focus/hit-testing/the accessibility tree the instant it starts
+          closing, while still letting the drain animation play visually. */}
+      <nav
+        id="mobile-menu"
+        className={styles.mobileMenu}
+        aria-label="Navigation mobile"
+        inert={!isMenuOpen}
+      >
+        <MobileMenuWave isOpen={isMenuOpen} onRevealedChange={handleRevealedChange} />
+
+        <div
+          className={[styles.mobileContent, isRevealed ? styles.revealed : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
+          <div className={styles.mobileLinks}>
+            {MOBILE_NAV_LINKS.map((link, index) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={styles.mobileLink}
+                style={{ transitionDelay: `${index * 60}ms` }}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
-        </nav>
-      ) : null}
+          <Button
+            href="/logement/ajouter"
+            variant="brand"
+            className={styles.mobileAddButton}
+            style={{ transitionDelay: `${MOBILE_NAV_LINKS.length * 60}ms` }}
+          >
+            Ajouter un logement
+          </Button>
+        </div>
+      </nav>
     </header>
   );
 }

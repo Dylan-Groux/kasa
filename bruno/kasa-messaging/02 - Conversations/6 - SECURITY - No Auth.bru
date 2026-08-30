@@ -1,0 +1,17 @@
+meta {
+  name: 6 - SECURITY - No Auth
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: none
+  auth: none
+}
+
+tests {
+  test("401 without a token", function () {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

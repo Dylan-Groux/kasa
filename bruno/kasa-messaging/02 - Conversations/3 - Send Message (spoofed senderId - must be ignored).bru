@@ -1,0 +1,32 @@
+meta {
+  name: 3 - Send Message (spoofed senderId - must be ignored)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/conversations/{{conversationId}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+body:json {
+  {
+    "content": "Tentative d'usurpation",
+    "senderId": 999999,
+    "receiverId": 999999
+  }
+}
+
+tests {
+  test("ignores spoofed senderId/receiverId, uses the authenticated user instead", function () {
+    const data = res.getBody();
+    expect(res.getStatus()).to.equal(201);
+    expect(String(data.sender.id)).to.equal(String(bru.getEnvVar("userAId")));
+    expect(String(data.receiver.id)).to.equal(String(bru.getEnvVar("userBId")));
+  });
+}

@@ -1,0 +1,12 @@
+.waveLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.waveLayer svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

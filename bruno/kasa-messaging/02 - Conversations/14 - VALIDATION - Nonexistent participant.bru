@@ -1,0 +1,27 @@
+meta {
+  name: 14 - VALIDATION - Nonexistent participant
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/conversations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenA}}
+}
+
+body:json {
+  {
+    "participant_id": 999999
+  }
+}
+
+tests {
+  test("400: participant does not exist", function () {
+    expect(res.getStatus()).to.equal(400);
+  });
+}
