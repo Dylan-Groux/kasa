@@ -21,9 +21,10 @@ cp .env.example .env.local   # puis renseigner BACKEND_API_URL
 npm run dev
 ```
 
-| Variable          | Rôle                                                                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `BACKEND_API_URL` | Origine du backend REST (ex: `http://localhost:3000`). Lue **uniquement côté serveur** (routes `app/api/*` et Server Components) — jamais exposée au client. |
+| Variable          | Rôle                                                                                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BACKEND_API_URL` | **Requis.** Origine du backend REST (ex: `http://localhost:3000`). Lue **uniquement côté serveur** (routes `app/api/*` et Server Components) — jamais exposée au client.                    |
+| `SITE_URL`        | Optionnel. URL publique du site (sitemap, JSON-LD, canonical). Sur Vercel, `VERCEL_PROJECT_PRODUCTION_URL` est injecté automatiquement et sert de fallback ; sinon `http://localhost:3000`. |
 
 Commandes de validation (voir `AGENTS.md`) :
 
