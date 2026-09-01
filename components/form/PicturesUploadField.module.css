@@ -10,6 +10,11 @@
   color: var(--color-text);
 }
 
+.hint {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
 .list {
   display: flex;
   flex-wrap: wrap;

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import type { PropertyDetailSchema } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 import { AmenitySection } from './AmenitySection';
 import { HostCard } from './HostCard';
-import { PropertyGallery } from './PropertyGallery';
+import { PropertyCarousel } from './PropertyCarousel';
 import { PropertyInfo } from './PropertyInfo';
 import styles from './PropertyDetail.module.css';
 
@@ -20,7 +20,7 @@ export function PropertyDetail({ property }: PropertyDetailProps) {
 
       <div className={styles.layout}>
         <div className={styles.main}>
-          <PropertyGallery title={property.title} pictures={property.pictures} />
+          <PropertyCarousel title={property.title} pictures={property.pictures} />
 
           <div className={styles.card}>
             <PropertyInfo

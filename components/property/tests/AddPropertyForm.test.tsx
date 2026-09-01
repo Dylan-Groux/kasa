@@ -137,7 +137,7 @@ describe('AddPropertyForm', () => {
 
     render(<AddPropertyForm />);
     fillRequiredFields();
-    fireEvent.change(screen.getByLabelText('Photos du logement'), {
+    fireEvent.change(screen.getByLabelText(/Photos du logement/), {
       target: { files: [new File(['content'], 'salon.jpg', { type: 'image/jpeg' })] },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));

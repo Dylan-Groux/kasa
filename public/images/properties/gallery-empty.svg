@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 616 358" role="img" aria-label="Aucune photo disponible pour ce logement">
+  <rect width="616" height="358" fill="#f5f5f5" />
+  <g fill="#565656" fill-opacity="0.35">
+    <rect x="253" y="129" width="110" height="86" rx="8" fill="none" stroke="#565656" stroke-opacity="0.35" stroke-width="6" />
+    <circle cx="278" cy="155" r="9" />
+    <path d="M263 199l24-24 15 15 20-26 31 35z" />
+  </g>
+</svg>
