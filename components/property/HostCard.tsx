@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { StarIcon } from '@/components/icons/StarIcon';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { extractErrorMessage } from '@/lib/http/extractErrorMessage';
 import { createConversationResponseSchema } from '@/lib/proxy/schemas/conversations/createConversation.schema';
 import type { PropertyDetailSchema } from '@/lib/proxy/schemas/properties/propertyDetail.schema';
 import styles from './HostCard.module.css';
@@ -19,12 +20,21 @@ export function HostCard({ host, rating }: HostCardProps) {
   const router = useRouter();
   const { session, isAuthenticated } = useAuth();
   const [isStartingConversation, setIsStartingConversation] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Masque les boutons quand l'utilisateur connecté est lui-même l'hôte de
+  // cette annonce (on ne se contacte pas soi-même).
+  const isOwnListing = session?.user.id === host.id;
 
   /**
    * Trouve ou crée une conversation avec l'hôte, puis redirige vers son fil —
    * seul point d'entrée de la messagerie en dehors de /messagerie elle-même.
    * @route /api/conversations
    * @method POST
+   * @note Le backend refuse aussi explicitement de se contacter soi-même
+   * (400 "cannot create a conversation with yourself") — `isOwnListing`
+   * masque déjà les boutons dans ce cas, mais cette erreur reste affichée
+   * proprement (au lieu d'un simple console.error) si ce garde-fou front
+   * est un jour contourné, par exemple par une donnée `host` obsolète.
    */
   async function handleMessageHost() {
     if (!isAuthenticated || !session) {
@@ -32,6 +42,7 @@ export function HostCard({ host, rating }: HostCardProps) {
       return;
     }
 
+    setError(null);
     setIsStartingConversation(true);
     try {
       const response = await fetch('/api/conversations', {
@@ -40,19 +51,20 @@ export function HostCard({ host, rating }: HostCardProps) {
         body: JSON.stringify({ participant_id: host.id }),
       });
 
+      const rawBody: unknown = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Failed to start conversation with status ${response.status}`);
+        throw new Error(extractErrorMessage(rawBody, 'Impossible de contacter cet hôte.'));
       }
 
-      const rawBody: unknown = await response.json();
       const parsed = createConversationResponseSchema.safeParse(rawBody);
       if (!parsed.success) {
-        throw new Error('Unexpected response shape');
+        throw new Error('Réponse inattendue du serveur.');
       }
 
       router.push(`/messagerie/${parsed.data.id}`);
-    } catch (error) {
-      console.error('Failed to start conversation with host', error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de contacter cet hôte.');
       setIsStartingConversation(false);
     }
   }
@@ -76,22 +88,32 @@ export function HostCard({ host, rating }: HostCardProps) {
           {rating}
         </span>
       </div>
-      <Button
-        variant="brand"
-        className={styles.actionButton}
-        disabled={isStartingConversation}
-        onClick={handleMessageHost}
-      >
-        Contacter l&apos;hôte
-      </Button>
-      <Button
-        variant="brand"
-        className={styles.actionButton}
-        disabled={isStartingConversation}
-        onClick={handleMessageHost}
-      >
-        Envoyer un message
-      </Button>
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {isOwnListing ? null : (
+        <>
+          <Button
+            variant="brand"
+            className={styles.actionButton}
+            disabled={isStartingConversation}
+            onClick={handleMessageHost}
+          >
+            Contacter l&apos;hôte
+          </Button>
+          <Button
+            variant="brand"
+            className={styles.actionButton}
+            disabled={isStartingConversation}
+            onClick={handleMessageHost}
+          >
+            Envoyer un message
+          </Button>
+        </>
+      )}
     </div>
   );
 }

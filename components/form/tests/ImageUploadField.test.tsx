@@ -27,6 +27,26 @@ describe('ImageUploadField', () => {
     expect(screen.getByText("Changer l'image")).toBeInTheDocument();
   });
 
+  it('preloads an existing picture via initialPreviewUrl, replaced once a new file is picked', () => {
+    render(
+      <ImageUploadField
+        label="Photo de profil"
+        name="hostPicture"
+        initialPreviewUrl="https://cdn.kasa.test/avatar.jpg"
+      />,
+    );
+
+    const preview = screen.getByAltText('') as HTMLImageElement;
+    expect(preview.src).toBe('https://cdn.kasa.test/avatar.jpg');
+    expect(screen.getByText("Changer l'image")).toBeInTheDocument();
+
+    const file = new File(['content'], 'new.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText(/Photo de profil/), { target: { files: [file] } });
+
+    const updatedPreview = screen.getByAltText('') as HTMLImageElement;
+    expect(updatedPreview.src).toContain('blob:mock-preview');
+  });
+
   it('revokes the previous preview URL when the selection changes', () => {
     render(<ImageUploadField label="Image de couverture" name="cover" />);
     const input = screen.getByLabelText(/Image de couverture/);

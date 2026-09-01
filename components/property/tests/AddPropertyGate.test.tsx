@@ -23,6 +23,7 @@ describe('AddPropertyGate', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout,
+      updateUser: vi.fn(),
     });
 
     render(<AddPropertyGate />);
@@ -36,6 +37,7 @@ describe('AddPropertyGate', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout,
+      updateUser: vi.fn(),
     });
 
     render(<AddPropertyGate />);
@@ -50,6 +52,7 @@ describe('AddPropertyGate', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout,
+      updateUser: vi.fn(),
     });
     const updatedUser = { id: 5, name: 'Alex', picture: null, role: 'owner' };
     const fetchMock = vi
@@ -81,6 +84,7 @@ describe('AddPropertyGate', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout,
+      updateUser: vi.fn(),
     });
     const fetchMock = vi
       .fn()

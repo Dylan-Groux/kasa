@@ -10,6 +10,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   login: (session: AuthSession) => void;
   logout: () => void;
+  updateUser: (patch: Partial<Pick<AuthSession['user'], 'name' | 'picture'>>) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -32,9 +33,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
   }, []);
 
+  /**
+   * @note Met à jour name/picture localement après un PATCH /api/users/:id
+   * réussi, sans repasser par login() — contrairement au rôle, ni l'un ni
+   * l'autre n'est figé dans le JWT côté usage front, donc pas besoin de
+   * reconnexion pour que le reste de l'app (Navbar, etc.) les reflète.
+   */
+  const updateUser = useCallback(
+    (patch: Partial<Pick<AuthSession['user'], 'name' | 'picture'>>) => {
+      setSession((current) =>
+        current ? { ...current, user: { ...current.user, ...patch } } : current,
+      );
+    },
+    [],
+  );
+
   const value = useMemo<AuthContextValue>(
-    () => ({ session, isAuthenticated: session !== null, login, logout }),
-    [session, login, logout],
+    () => ({ session, isAuthenticated: session !== null, login, logout, updateUser }),
+    [session, login, logout, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -17,6 +17,7 @@ import {
   uploadImageResponseSchema,
   type UploadImagePurpose,
 } from '@/lib/proxy/schemas/uploads/uploadImage.schema';
+import { userUpdateResponseSchema } from '@/lib/proxy/schemas/users/userUpdate.schema';
 import { MAX_GALLERY_THUMBNAILS } from './propertyGallerySlides';
 import styles from './AddPropertyForm.module.css';
 
@@ -65,7 +66,7 @@ const CATEGORIES = [
 
 export function AddPropertyForm() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, updateUser } = useAuth();
   const [customTagValue, setCustomTagValue] = useState('');
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [pictureFiles, setPictureFiles] = useState<File[]>([]);
@@ -122,6 +123,50 @@ export function AddPropertyForm() {
   }
 
   /**
+   * Met à jour le nom/la photo du compte connecté si l'utilisateur les a
+   * changés dans les champs "Nom de l'hôte"/"Photo de profil" (préremplis
+   * avec son profil actuel).
+   * @objectif L'hôte affiché sur une annonce est toujours le compte
+   * connecté (`host_id`) — ces champs ne créent plus un hôte séparé, ils
+   * modifient le vrai profil, comme le permet PATCH /api/users/:id en
+   * libre-service pour son propre compte.
+   * @note No-op si rien n'a changé, pour ne pas faire un appel réseau inutile.
+   * @route /api/users/:id
+   * @method PATCH
+   */
+  async function updateHostProfileIfChanged(hostName: string, hostPictureFile: File | undefined) {
+    if (!session) {
+      return;
+    }
+
+    const patch: { name?: string; picture?: string } = {};
+    if (hostName && hostName !== session.user.name) {
+      patch.name = hostName;
+    }
+    if (hostPictureFile && hostPictureFile.size > 0) {
+      patch.picture = await uploadImage(hostPictureFile, 'user-picture', 'Photo de profil');
+    }
+    if (Object.keys(patch).length === 0) {
+      return;
+    }
+
+    const response = await fetch(`/api/users/${session.user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
+      body: JSON.stringify(patch),
+    });
+    const rawBody: unknown = await response.json();
+
+    if (!response.ok) {
+      const message = extractErrorMessage(rawBody, 'Impossible de mettre à jour votre profil.');
+      throw new UserFacingError(`Profil hôte : ${message}`);
+    }
+
+    const updated = userUpdateResponseSchema.parse(rawBody);
+    updateUser({ name: updated.name, picture: updated.picture });
+  }
+
+  /**
    * @route /api/properties
    * @method POST
    */
@@ -139,24 +184,22 @@ export function AddPropertyForm() {
       const coverFile = (formEl.elements.namedItem('cover') as HTMLInputElement | null)?.files?.[0];
       const hostPictureFile = (formEl.elements.namedItem('hostPicture') as HTMLInputElement | null)
         ?.files?.[0];
+      const hostName = String(formData.get('hostName') ?? '').trim();
 
-      const [coverUrl, hostPictureUrl, pictureUrls] = await Promise.all([
+      const [coverUrl, pictureUrls] = await Promise.all([
         coverFile && coverFile.size > 0
           ? uploadImage(coverFile, 'property-cover', 'Image de couverture')
-          : undefined,
-        hostPictureFile && hostPictureFile.size > 0
-          ? uploadImage(hostPictureFile, 'user-picture', 'Photo de profil')
           : undefined,
         Promise.all(
           pictureFiles.map((file) => uploadImage(file, 'property-picture', 'Photos du logement')),
         ),
+        updateHostProfileIfChanged(hostName, hostPictureFile),
       ]);
 
       const title = String(formData.get('title') ?? '').trim();
       const description = String(formData.get('description') ?? '').trim();
       const postalCode = String(formData.get('postalCode') ?? '').trim();
       const location = String(formData.get('location') ?? '').trim();
-      const hostName = String(formData.get('hostName') ?? '').trim();
       const priceRaw = String(formData.get('price_per_night') ?? '').trim();
       const equipments = formData.getAll('equipments').map(String);
       const tags = [...formData.getAll('tags').map(String), ...customTags];
@@ -167,7 +210,7 @@ export function AddPropertyForm() {
         cover: coverUrl,
         location: [location, postalCode].filter(Boolean).join(' - ') || undefined,
         price_per_night: priceRaw ? Number(priceRaw) : undefined,
-        host: { name: hostName, picture: hostPictureUrl },
+        host_id: session?.user.id,
         pictures: pictureUrls.length ? pictureUrls : undefined,
         equipments: equipments.length ? equipments : undefined,
         tags: tags.length ? tags : undefined,
@@ -259,8 +302,17 @@ export function AddPropertyForm() {
         </div>
 
         <div className={`${styles.card} ${styles.hostCard}`}>
-          <TextField label="Nom de l'hôte" name="hostName" required />
-          <ImageUploadField label="Photo de profil" name="hostPicture" />
+          <TextField
+            label="Nom de l'hôte"
+            name="hostName"
+            required
+            defaultValue={session?.user.name}
+          />
+          <ImageUploadField
+            label="Photo de profil"
+            name="hostPicture"
+            initialPreviewUrl={session?.user.picture}
+          />
         </div>
       </div>
 

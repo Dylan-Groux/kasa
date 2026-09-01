@@ -34,6 +34,7 @@ describe('SignupForm', () => {
       isAuthenticated: false,
       login,
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
   });
 

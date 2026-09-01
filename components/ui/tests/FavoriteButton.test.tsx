@@ -38,6 +38,7 @@ describe('FavoriteButton', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
     const toggleFavorite = vi.fn();
     mockedUseFavorites.mockReturnValue({
@@ -61,6 +62,7 @@ describe('FavoriteButton', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
     const toggleFavorite = vi.fn();
     mockedUseFavorites.mockReturnValue({
@@ -84,6 +86,7 @@ describe('FavoriteButton', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
     mockedUseFavorites.mockReturnValue({
       favorites: [],
