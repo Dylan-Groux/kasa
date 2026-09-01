@@ -17,6 +17,7 @@ import {
   uploadImageResponseSchema,
   type UploadImagePurpose,
 } from '@/lib/proxy/schemas/uploads/uploadImage.schema';
+import { MAX_GALLERY_THUMBNAILS } from './propertyGallerySlides';
 import styles from './AddPropertyForm.module.css';
 
 const EQUIPMENTS = [
@@ -207,8 +208,8 @@ export function AddPropertyForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <Button href="/" variant="muted" icon={<ChevronLeftIcon />}>
-        Retour aux annonces
+      <Button href="/" variant="muted" icon={<ChevronLeftIcon />} className={styles.backButton}>
+        Retour
       </Button>
 
       <div className={styles.heading}>
@@ -224,8 +225,8 @@ export function AddPropertyForm() {
         </p>
       ) : null}
 
-      <div className={styles.row}>
-        <div className={styles.card}>
+      <div className={styles.topGrid}>
+        <div className={`${styles.card} ${styles.infoCard}`}>
           <TextField
             label="Titre de la propriété"
             name="title"
@@ -247,13 +248,17 @@ export function AddPropertyForm() {
           />
         </div>
 
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.coverCard}`}>
           <ImageUploadField label="Image de couverture" name="cover" />
           <PicturesUploadField
             label="Photos du logement"
             files={pictureFiles}
             onChange={setPictureFiles}
+            maxFiles={MAX_GALLERY_THUMBNAILS}
           />
+        </div>
+
+        <div className={`${styles.card} ${styles.hostCard}`}>
           <TextField label="Nom de l'hôte" name="hostName" required />
           <ImageUploadField label="Photo de profil" name="hostPicture" />
         </div>

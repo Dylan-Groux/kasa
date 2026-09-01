@@ -22,9 +22,19 @@
   flex-shrink: 0;
 }
 
+.backButton {
+  align-self: flex-start;
+}
+
 .row {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 16px;
 }
 
@@ -114,6 +124,26 @@
   .card {
     flex: 1;
     padding: 40px;
+  }
+
+  .topGrid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .infoCard {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .coverCard {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .hostCard {
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .title {

@@ -13,8 +13,14 @@ type ImageUploadFieldProps = {
 export function ImageUploadField({ label, name }: ImageUploadFieldProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Les object URLs ne vivent que le temps de l'onglet — on libère l'ancienne
-  // à chaque changement de sélection ou au démontage, pour éviter une fuite.
+  /**
+   * @note Les URLs objet ne sont valides que pour la durée de vie de l'onglet
+   * — on libère l'ancienne à chaque changement de sélection ou au démontage,
+   * pour éviter une fuite. Ce champ ne monte qu'une fois (pas remonté à
+   * chaque fichier sélectionné, contrairement à l'aperçu par item de
+   * PicturesUploadField), donc le double-invoke de React StrictMode en dev
+   * ne révoque jamais une URL encore en cours de chargement.
+   */
   useEffect(() => {
     if (!previewUrl) {
       return;
