@@ -57,7 +57,7 @@ describe('PropertyCarousel', () => {
     );
     render(<PropertyCarousel title="Grande maison" pictures={manyPictures} />);
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(MAX_GALLERY_THUMBNAILS);
+    expect(screen.getAllByRole('listitem')).toHaveLength(MAX_GALLERY_THUMBNAILS - 1);
     // Still reachable through the big slide's own navigation, just not as a thumbnail.
     expect(
       screen.queryByRole('button', { name: `Voir la photo ${manyPictures.length}` }),

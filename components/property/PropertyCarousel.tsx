@@ -131,12 +131,11 @@ export function PropertyCarousel({ title, pictures }: PropertyCarouselProps) {
 
       {hasNavigation ? (
         <ul className={styles.thumbnails}>
-          {/* Toujours les MAX_GALLERY_THUMBNAILS photos suivant la première
-              (jamais la première elle-même, déjà affichée en grand ; jamais
-              plus que le nombre de cases de la grille desktop, même si une
-              propriété plus ancienne a plus de photos que le formulaire n'en
-              autorise aujourd'hui). */}
-          {slides.slice(1, 1 + MAX_GALLERY_THUMBNAILS).map((slide, offset) => {
+          {/* Jamais la première photo (déjà affichée en grand), jamais plus
+              que MAX_GALLERY_THUMBNAILS au total (donc MAX_GALLERY_THUMBNAILS
+              - 1 vignettes) même si une propriété plus ancienne a plus de
+              photos que le formulaire n'en autorise aujourd'hui. */}
+          {slides.slice(1, MAX_GALLERY_THUMBNAILS).map((slide, offset) => {
             const index = offset + 1;
             const isActive = index === activeIndex;
             return (

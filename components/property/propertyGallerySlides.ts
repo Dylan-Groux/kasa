@@ -7,13 +7,16 @@ export const EMPTY_GALLERY_IMAGE = '/images/properties/gallery-empty.svg';
 export const EMPTY_GALLERY_MESSAGE = "Oups, il n'y a pas plus de détails sur ce logement...";
 
 /**
- * @objectif Nombre de vignettes affichées à côté de la photo principale sur
- * desktop (grille 4 colonnes × 2 lignes : la première photo occupe un bloc
- * de 2×2, les 4 autres cases accueillent chacune une vignette). Réutilisée
- * pour plafonner l'upload côté formulaire (`AddPropertyForm`), afin que la
- * grille ne puisse jamais recevoir plus de vignettes que de cases.
+ * @objectif Plafond du nombre de photos d'un logement, réutilisé pour
+ * plafonner l'upload côté formulaire (`AddPropertyForm`) et pour découper
+ * les vignettes du carrousel desktop (`PropertyCarousel`, grille 2×2 à côté
+ * de la photo principale).
+ * @note Vaut 1 (photo principale) + 4 (cases de la grille de vignettes),
+ * pas 4 seul : la première photo n'a pas de vignette dédiée
+ * (`slides.slice(1, ...)` dans `PropertyCarousel`), donc plafonner l'upload
+ * à 4 ne remplissait jamais que 3 des 4 cases.
  */
-export const MAX_GALLERY_THUMBNAILS = 4;
+export const MAX_GALLERY_THUMBNAILS = 5;
 
 /**
  * Construit la liste des slides du carrousel d'une propriété.
