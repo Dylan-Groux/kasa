@@ -11,6 +11,7 @@ import { PicturesUploadField } from '@/components/form/PicturesUploadField';
 import { TextField } from '@/components/form/TextField';
 import { TextareaField } from '@/components/form/TextareaField';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { extractErrorMessage } from '@/lib/http/extractErrorMessage';
 import { propertyCreateResponseSchema } from '@/lib/proxy/schemas/properties/propertyCreate.schema';
 import {
   uploadImageResponseSchema,
@@ -112,10 +113,7 @@ export function AddPropertyForm() {
     const rawBody: unknown = await response.json();
 
     if (!response.ok) {
-      const message =
-        typeof rawBody === 'object' && rawBody && 'error' in rawBody
-          ? String((rawBody as { error: unknown }).error)
-          : `Erreur ${response.status}`;
+      const message = extractErrorMessage(rawBody, `Erreur ${response.status}`);
       throw new UserFacingError(`${fieldLabel} : ${message}`);
     }
 
@@ -189,9 +187,7 @@ export function AddPropertyForm() {
         const message =
           response.status === 403
             ? 'Seuls les comptes propriétaire peuvent ajouter un logement.'
-            : typeof rawBody === 'object' && rawBody && 'error' in rawBody
-              ? String((rawBody as { error: unknown }).error)
-              : 'Impossible de créer le logement.';
+            : extractErrorMessage(rawBody, 'Impossible de créer le logement.');
         setError(message);
         return;
       }

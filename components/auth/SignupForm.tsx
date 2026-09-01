@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { CheckboxField } from '@/components/form/CheckboxField';
 import { TextField } from '@/components/form/TextField';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { extractErrorMessage } from '@/lib/http/extractErrorMessage';
 import { authRegisterResponseSchema } from '@/lib/proxy/schemas/auth/authRegister.schema';
 import styles from './AuthForm.module.css';
 
@@ -44,11 +45,7 @@ export function SignupForm() {
       const rawBody: unknown = await response.json();
 
       if (!response.ok) {
-        const message =
-          typeof rawBody === 'object' && rawBody && 'error' in rawBody
-            ? String((rawBody as { error: unknown }).error)
-            : 'Inscription impossible.';
-        setError(message);
+        setError(extractErrorMessage(rawBody, 'Inscription impossible.'));
         return;
       }
 

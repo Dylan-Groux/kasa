@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/form/TextField';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { extractErrorMessage } from '@/lib/http/extractErrorMessage';
 import { authLoginResponseSchema } from '@/lib/proxy/schemas/auth/authLogin.schema';
 import styles from './AuthForm.module.css';
 
@@ -39,11 +40,7 @@ export function LoginForm() {
       const rawBody: unknown = await response.json();
 
       if (!response.ok) {
-        const message =
-          typeof rawBody === 'object' && rawBody && 'error' in rawBody
-            ? String((rawBody as { error: unknown }).error)
-            : 'Connexion impossible.';
-        setError(message);
+        setError(extractErrorMessage(rawBody, 'Connexion impossible.'));
         return;
       }
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { extractErrorMessage } from '@/lib/http/extractErrorMessage';
 import { userUpdateResponseSchema } from '@/lib/proxy/schemas/users/userUpdate.schema';
 import { AddPropertyForm } from './AddPropertyForm';
 import styles from './AddPropertyGate.module.css';
@@ -54,11 +55,7 @@ function BecomeOwnerPrompt() {
       const rawBody: unknown = await response.json();
 
       if (!response.ok) {
-        const message =
-          typeof rawBody === 'object' && rawBody && 'error' in rawBody
-            ? String((rawBody as { error: unknown }).error)
-            : 'Impossible de mettre à jour votre compte.';
-        setError(message);
+        setError(extractErrorMessage(rawBody, 'Impossible de mettre à jour votre compte.'));
         setStatus('error');
         return;
       }
