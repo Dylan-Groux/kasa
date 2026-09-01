@@ -14,7 +14,7 @@ type PropertyDetailProps = {
 export function PropertyDetail({ property }: PropertyDetailProps) {
   return (
     <div className={styles.page}>
-      <Button href="/" variant="muted" icon={<ChevronLeftIcon />}>
+      <Button href="/" variant="muted" icon={<ChevronLeftIcon />} className={styles.back}>
         Retour aux annonces
       </Button>
 

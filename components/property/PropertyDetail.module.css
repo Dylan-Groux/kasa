@@ -4,6 +4,12 @@
   gap: 24px;
 }
 
+/* .page est en colonne sans align-items -> stretch par défaut étirerait ce
+   bouton (seul enfant qui n'est pas censé prendre toute la largeur). */
+.back {
+  align-self: flex-start;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 1fr;

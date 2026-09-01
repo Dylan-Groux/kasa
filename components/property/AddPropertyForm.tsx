@@ -317,8 +317,10 @@ export function AddPropertyForm() {
       </div>
 
       <div className={styles.row}>
-        <fieldset className={styles.card}>
-          <legend className={styles.sectionLabel}>Équipements</legend>
+        <div className={styles.card} role="group" aria-labelledby="equipments-label">
+          <p id="equipments-label" className={styles.sectionLabel}>
+            Équipements
+          </p>
           <ul className={styles.equipmentList}>
             {EQUIPMENTS.map((equipment) => (
               <li key={equipment}>
@@ -326,10 +328,12 @@ export function AddPropertyForm() {
               </li>
             ))}
           </ul>
-        </fieldset>
+        </div>
 
-        <fieldset className={styles.card}>
-          <legend className={styles.sectionLabel}>Catégories</legend>
+        <div className={styles.card} role="group" aria-labelledby="categories-label">
+          <p id="categories-label" className={styles.sectionLabel}>
+            Catégories
+          </p>
           <ul className={styles.categoryList}>
             {CATEGORIES.map((category) => (
               <li key={category}>
@@ -366,7 +370,7 @@ export function AddPropertyForm() {
           <button type="button" className={styles.addTag} onClick={handleAddCustomTag}>
             +Ajouter un tag
           </button>
-        </fieldset>
+        </div>
       </div>
     </form>
   );
