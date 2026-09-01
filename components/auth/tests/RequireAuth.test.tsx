@@ -21,6 +21,7 @@ describe('RequireAuth', () => {
       isAuthenticated: false,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
 
     const { container } = render(
@@ -39,6 +40,7 @@ describe('RequireAuth', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
 
     render(

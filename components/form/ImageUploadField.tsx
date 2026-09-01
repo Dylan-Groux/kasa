@@ -8,10 +8,12 @@ import styles from './ImageUploadField.module.css';
 type ImageUploadFieldProps = {
   label: string;
   name: string;
+  /** URL déjà existante à préremplir (ex. photo de profil actuelle de l'utilisateur). */
+  initialPreviewUrl?: string | null;
 };
 
-export function ImageUploadField({ label, name }: ImageUploadFieldProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export function ImageUploadField({ label, name, initialPreviewUrl = null }: ImageUploadFieldProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl);
 
   /**
    * @note Les URLs objet ne sont valides que pour la durée de vie de l'onglet

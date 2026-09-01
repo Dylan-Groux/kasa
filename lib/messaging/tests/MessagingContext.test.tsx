@@ -38,6 +38,7 @@ describe('MessagingContext unread tracking', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
   });
 

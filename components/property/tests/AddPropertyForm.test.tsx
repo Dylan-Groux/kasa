@@ -43,6 +43,7 @@ describe('AddPropertyForm', () => {
       isAuthenticated: true,
       login: vi.fn(),
       logout: vi.fn(),
+      updateUser: vi.fn(),
     });
     URL.createObjectURL = vi.fn(() => 'blob:mock-preview');
     URL.revokeObjectURL = vi.fn();
@@ -71,9 +72,99 @@ describe('AddPropertyForm', () => {
     expect(url).toBe('/api/properties');
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer token123');
 
-    const body = JSON.parse(init.body as string) as { title: string; host: { name: string } };
+    const body = JSON.parse(init.body as string) as { title: string; host_id: number };
     expect(body.title).toBe('Appartement cosy');
-    expect(body.host.name).toBe('Alexandre');
+    expect(body.host_id).toBe(1);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('updates the host profile when the host name differs from the session, before creating the property', async () => {
+    const updateUser = vi.fn();
+    mockedUseAuth.mockReturnValue({
+      session: { token: 'token123', user: { id: 1, name: 'Alexandre', role: 'owner' } },
+      isAuthenticated: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+      updateUser,
+    });
+
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/users/1') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({ id: 1, name: 'Alex Renamed', picture: null, role: 'owner' }),
+            {
+              status: 200,
+            },
+          ),
+        );
+      }
+      return Promise.resolve(new Response(JSON.stringify(createdProperty), { status: 201 }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<AddPropertyForm />);
+    fireEvent.change(screen.getByLabelText('Titre de la propriété'), {
+      target: { value: 'Appartement cosy' },
+    });
+    fireEvent.change(screen.getByLabelText("Nom de l'hôte"), {
+      target: { value: 'Alex Renamed' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
+
+    const patchCall = fetchMock.mock.calls.find(([url]) => url === '/api/users/1');
+    expect(patchCall).toBeDefined();
+    const [, init] = patchCall as [string, RequestInit];
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({ name: 'Alex Renamed' });
+    expect(updateUser).toHaveBeenCalledWith({ name: 'Alex Renamed', picture: null });
+
+    vi.unstubAllGlobals();
+  });
+
+  it('does not call PATCH /api/users/:id when the host name is unchanged', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(createdProperty), { status: 201 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<AddPropertyForm />);
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
+
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/users/1')).toBe(false);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('shows an error and does not create the property when updating the host profile fails', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/users/1') {
+        return Promise.resolve(
+          new Response(JSON.stringify({ error: 'nom invalide' }), { status: 400 }),
+        );
+      }
+      return Promise.resolve(new Response(JSON.stringify(createdProperty), { status: 201 }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<AddPropertyForm />);
+    fireEvent.change(screen.getByLabelText('Titre de la propriété'), {
+      target: { value: 'Appartement cosy' },
+    });
+    fireEvent.change(screen.getByLabelText("Nom de l'hôte"), {
+      target: { value: 'Nouveau nom' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Profil hôte : nom invalide');
+    expect(push).not.toHaveBeenCalled();
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/properties')).toBe(false);
 
     vi.unstubAllGlobals();
   });
