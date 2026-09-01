@@ -6,6 +6,7 @@ import type { NextConfig } from 'next';
 const backendUrl = process.env.BACKEND_API_URL ? new URL(process.env.BACKEND_API_URL) : null;
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
