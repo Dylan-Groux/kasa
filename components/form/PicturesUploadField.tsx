@@ -74,6 +74,7 @@ export function PicturesUploadField({
         {!hasReachedLimit ? (
           <li>
             <label className={styles.addTile}>
+              <span className={styles.visuallyHidden}>Ajouter une photo</span>
               <input
                 id={inputId}
                 type="file"
